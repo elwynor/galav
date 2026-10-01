@@ -1,0 +1,29 @@
+; HVSAV.MDF - Auto Validator v2.1.0 for The Major BBS v10
+; Copyright (c) 2026 Elwynor Technologies
+; Originally (c) High Velocity Software, Inc.
+
+Module Name: Auto Validator
+
+Developer: Elwynor Technologies
+
+Requires:
+Replaces:
+
+Install:
+
+Online user manual: HVSAV.TXT
+
+DLLs: HVSAV
+MSGs: HVSAV
+
+Btrieve page size: 1024
+Btrieve files:     2
+
+Cleanup:
+
+Event-1:
+Event-2:
+Event-3:
+Event-4:
+
+Add-On Utility:
