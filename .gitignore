@@ -13,6 +13,7 @@ PROJECT_STATUS.MD
 /SCRATCH/
 /PRIVATE/
 /INTERNAL/
+/TOOLS/
 
 # --- Credentials / environment-specific config ---
 *.env

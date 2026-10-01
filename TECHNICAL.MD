@@ -19,7 +19,7 @@ where the user is in `usrptr->substt`, and returns.
 | `AVUSER.C` / `AVUSER.H` | `HVSAVUSR.DAT` access |
 | `AVTVARS.C` | Named text variables |
 | `AVLOG.C` | Activity log |
-| `HVSAV.MST` → `HVSAV.MSG`, `HVSAV.H` | Message template, and the files generated from it by `TOOLS/MKMSG.PY` |
+| `HVSAV.MST` → `HVSAV.MSG`, `HVSAV.H` | Message template (readable tokens), and the message file and numbers built from it |
 
 ### Module hooks
 
@@ -101,7 +101,7 @@ at the point of use and saved on every change.
 `vsprintf` format string. A `%` inside a variable's value would therefore be
 taken as a format code. `AVTVARS.C` returns every value with `%` doubled.
 `tv_raw(TRUE)` turns the doubling off while the email body is built with
-`xlttxv()`. `TOOLS/MKMSG.PY` refuses any single `%` in message text.
+`xlttxv()`. Message text must never contain a single `%`; write `%%`.
 
 Registered variables: `HVS_USERID HVS_EMAIL HVS_EMAILTYP HVS_CODE
 HVS_CREDITS HVS_COUNT HVS_ATTEMPTS HVS_VALID HVS_OVERRIDE HVS_METHOD
@@ -121,7 +121,8 @@ The engine's own `SYSTEM_NAME` is used for the board's name.
 
 ## Message file numbering
 
-`HVSAV.H` is generated, never hand-edited. Every named entry in `HVSAV.MSG`,
+`HVSAV.H` must match `HVSAV.MSG` exactly. Every named entry in `HVSAV.MSG`,
 including each `LEVELn` marker, takes the next number counting from 0. The
-`LEVELn` markers get no `#define`. This matches WGSMSX. `MKMSG.PY`
-reproduced all 196 numbers of the original 2.0 header exactly.
+`LEVELn` markers get no `#define`. This matches the numbering of the
+Galacticomm WGSMSX tool, and was checked against all 196 numbers of the
+original 2.0 header.

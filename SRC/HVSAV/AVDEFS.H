@@ -1,4 +1,4 @@
-/* Build 26.10.01.2 04:18PM */
+/* Build 26.10.01.3 05:02PM */
 /*****************************************************************************
  *   AVDEFS.H                                Auto Validator - Shared defines  *
  *                                                                           *
@@ -18,7 +18,7 @@
 
 #include "gcomm.h"
 #include "majorbbs.h"
-#include "HVSAV.H"                   /* message numbers (made by MKMSG.PY)   */
+#include "HVSAV.H"                   /* message numbers for HVSAV.MSG       */
 
 /* ------------------------------------------------------------------------ *
  * Version.  HVS_VERSION is what sysops see (audit trail, sysop menu); the   *
