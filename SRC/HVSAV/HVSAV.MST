@@ -1,0 +1,504 @@
+LEVEL3 {}
+
+ AUTO VALIDATOR - SECURITY AND ACCOUNTING
+
+ These are INSTALL DEFAULTS.  The first time Auto Validator starts it
+ copies these values into its settings file (HVSAVSET.DAT).  After that,
+ change settings ONLINE from the Auto Validator sysop menu (Settings) -
+ changes made there take effect immediately, without a restart.  To
+ re-apply the values below, use "Reset settings to defaults" in that
+ menu.
+
+ This is the key a user must have to request validation.  If it is
+ empty, anyone may request validation, subject to the normal checks.
+
+ Default: (none)
+
+VALIDKEY {} S 15 Key a user needs to request validation
+
+ The key needed to use the Auto Validator sysop menu and the sysop
+ global commands.  Users with this key are never validated themselves;
+ they manage the validator instead.  WARNING: users with this key can
+ validate and devalidate other users, so give it to sysops only.
+
+ Default: SYSOP
+
+CNFGACES {SYSOP} S 15 Key needed for the sysop menu and commands
+
+ The validation method (1-5) applied when a user enters the correct
+ code from their validation email.  Methods 1-5 are defined by the
+ MTDnCLS, MTDnKEY, MTDnCRED and MTDnPAYM settings below.
+
+ Default: 1
+
+EMAILMTD {Validation method for email validations: 1} N 1 5
+
+ The maximum number of VALIDATED users that may share one email
+ address.  Once this many validated users use an address, no further
+ user may be validated with it.
+
+ Default: 1
+
+MAXEMAIL {Max validated users per email address: 1} N 1 100
+
+ The class a user is switched to when validated with method 1.  Leave
+ empty for no class change.  The class must exist in your Accounts
+ setup; if it does not, the class change is skipped and a warning is
+ written to the Audit Trail.
+
+ Default: (none)
+
+MTD1CLS {} S 15 New class for method 1 validation
+
+ A key given to users validated with method 1.  Leave empty to give
+ no key.
+
+ Default: (none)
+
+MTD1KEY {} S 15 New key for method 1 validation
+
+ Credits posted to a user validated with method 1.  Zero posts none.
+
+ Default: 0
+
+MTD1CRED {Credits posted for method 1 validations: 0} L 0 1000000
+
+ Whether method 1 credits are posted as FREE or PAID (for system
+ accounting).
+
+ Default: FREE
+
+MTD1PAYM {Credit type for method 1 validations: FREE} E FREE PAID
+
+ The class a user is switched to when validated with method 2.  Leave
+ empty for no class change.
+
+ Default: (none)
+
+MTD2CLS {} S 15 New class for method 2 validation
+
+ A key given to users validated with method 2.
+
+ Default: (none)
+
+MTD2KEY {} S 15 New key for method 2 validation
+
+ Credits posted to a user validated with method 2.
+
+ Default: 0
+
+MTD2CRED {Credits posted for method 2 validations: 0} L 0 1000000
+
+ Whether method 2 credits are posted as FREE or PAID.
+
+ Default: FREE
+
+MTD2PAYM {Credit type for method 2 validations: FREE} E FREE PAID
+
+ The class a user is switched to when validated with method 3.  Leave
+ empty for no class change.
+
+ Default: (none)
+
+MTD3CLS {} S 15 New class for method 3 validation
+
+ A key given to users validated with method 3.
+
+ Default: (none)
+
+MTD3KEY {} S 15 New key for method 3 validation
+
+ Credits posted to a user validated with method 3.
+
+ Default: 0
+
+MTD3CRED {Credits posted for method 3 validations: 0} L 0 1000000
+
+ Whether method 3 credits are posted as FREE or PAID.
+
+ Default: FREE
+
+MTD3PAYM {Credit type for method 3 validations: FREE} E FREE PAID
+
+ The class a user is switched to when validated with method 4.  Leave
+ empty for no class change.
+
+ Default: (none)
+
+MTD4CLS {} S 15 New class for method 4 validation
+
+ A key given to users validated with method 4.
+
+ Default: (none)
+
+MTD4KEY {} S 15 New key for method 4 validation
+
+ Credits posted to a user validated with method 4.
+
+ Default: 0
+
+MTD4CRED {Credits posted for method 4 validations: 0} L 0 1000000
+
+ Whether method 4 credits are posted as FREE or PAID.
+
+ Default: FREE
+
+MTD4PAYM {Credit type for method 4 validations: FREE} E FREE PAID
+
+ The class a user is switched to when validated with method 5.  Leave
+ empty for no class change.
+
+ Default: (none)
+
+MTD5CLS {} S 15 New class for method 5 validation
+
+ A key given to users validated with method 5.
+
+ Default: (none)
+
+MTD5KEY {} S 15 New key for method 5 validation
+
+ Credits posted to a user validated with method 5.
+
+ Default: 0
+
+MTD5CRED {Credits posted for method 5 validations: 0} L 0 1000000
+
+ Whether method 5 credits are posted as FREE or PAID.
+
+ Default: FREE
+
+MTD5PAYM {Credit type for method 5 validations: FREE} E FREE PAID
+
+LEVEL4 {}
+
+ AUTO VALIDATOR - GENERAL CONFIGURATION
+
+ These are INSTALL DEFAULTS (see the note at the top of the Level 3
+ options).  Once the module has run, change them online from the Auto
+ Validator sysop menu.
+
+ If YES, users who have the validation key but are not yet validated
+ are asked at logon whether they want to validate now.
+
+ Default: NO
+
+AVATLOGN {Offer validation to users at logon: NO} B
+
+ The first character of the Auto Validator sysop global commands (for
+ example @V, @L).  It must not clash with any other global command
+ trigger on your system.
+
+ Default: @
+
+AVGLOB {Global command trigger character: @} C
+
+ How email is described to users in Auto Validator messages, for
+ example "Internet".
+
+ Default: Internet
+
+EMAILTYP {Internet} S 20 Type of email address (shown to users)
+
+ The address prefix that routes a message out through your Internet
+ mail gateway.  The validation email is addressed to this prefix
+ followed by the user's address.
+
+ Default: IN:
+
+EMAILPFX {IN:} S 5 Internet email address prefix
+
+ An email domain that may not be used for validation - typically your
+ own BBS's domain, so users cannot validate with a mailbox on your own
+ system.  Leave empty to allow all domains.  For a longer list, put
+ one entry per line in HVSAVBAD.TXT in the BBS directory; any address
+ containing one of those entries is refused.
+
+ Default: (none)
+
+BADEMAIL {} S 37 Email domain refused for validation
+
+ The number of times a user may fail validation (three wrong codes in
+ one visit counts as one failure).  After that the sysop must reset
+ them with the devalidate (@D) or override (@O) global command.  Zero
+ means no limit.
+
+ Default: 3
+
+MAXATMPT {Failed validations allowed per user: 3} N 0 100
+
+ The Auto Validator activity log, a text file in the BBS directory.
+ Every validation, failure and sysop action is logged with the date
+ and time.  Leave empty to disable logging.
+
+ Default: HVSAV.LOG
+
+LOGFILE {HVSAV.LOG} S 40 Auto Validator activity log file
+
+LEVEL6 {}
+
+SYSMENU {<ESC>[1;36m
+Auto Validator v<TV:HVS_VERSION> - Sysop Menu
+
+  <ESC>[1;36m(<ESC>[1;37mS<ESC>[1;36m) Settings
+  <ESC>[1;36m(<ESC>[1;37mL<ESC>[1;36m) Look up a user
+  <ESC>[1;36m(<ESC>[1;37mG<ESC>[1;36m) Show the sysop global commands
+  <ESC>[1;36m(<ESC>[1;37mX<ESC>[1;36m) Exit Auto Validator
+} T Sysop main menu
+
+SYSPRMPT {<ESC>[1;36m
+<ESC>[1;32mAuto Validator Sysop Menu<ESC>[1;36m
+Make your selection (<ESC>[1;37mS,L,G,? <ESC>[1;36mfor help, or <ESC>[1;37mX<ESC>[1;36m to exit): } T Sysop main menu prompt
+
+SYSHELP {<ESC>[1;35m
+...Auto Validator validates new users by email.  A user enters the
+module, gives an email address, and is sent a code.  When they return
+and enter the code, they are validated: switched to a new class, given
+a key and/or posted credits, as set up for the validation method.
+
+Settings changes made here take effect immediately.  Use Look up to
+see a user's validation record, and the global commands to validate,
+devalidate or re-send codes from anywhere on the system.
+} T Sysop main menu help
+
+SETMENU {<ESC>[1;36m
+Auto Validator Settings (changes apply immediately)
+
+  <ESC>[1;36m(<ESC>[1;37mG<ESC>[1;36m) General settings
+  <ESC>[1;36m(<ESC>[1;37m1<ESC>[1;36m-<ESC>[1;37m5<ESC>[1;36m) Validation method 1-5 settings
+  <ESC>[1;36m(<ESC>[1;37mR<ESC>[1;36m) Reset all settings to the HVSAV.MSG defaults
+  <ESC>[1;36m(<ESC>[1;37mX<ESC>[1;36m) Return to the sysop menu
+} T Settings menu
+
+SETPRMPT {<ESC>[1;36m
+<ESC>[1;32mSettings<ESC>[1;36m
+Make your selection (<ESC>[1;37mG,1-5,R <ESC>[1;36mor <ESC>[1;37mX<ESC>[1;36m to go back): } T Settings menu prompt
+
+SETHDR {<ESC>[1;36m
+<ESC>[1;32m<TV:HVS_PAGE><ESC>[1;34m
+-----------------------------------------------------------------------
+} T Header of a settings page
+
+SETROW {<ESC>[1;36m  (<ESC>[1;37m<TV:HVS_ITEM:R:2><ESC>[1;36m) <TV:HVS_LABEL:L:34> <ESC>[1;37m<TV:HVS_VALUE>
+} T One row of a settings page
+
+SETPGPR {<ESC>[1;36m
+Item number to change, or <ESC>[1;37mX<ESC>[1;36m to go back: } T Settings page prompt
+
+SETVALPR {<ESC>[1;36m
+<TV:HVS_LABEL> is now: <ESC>[1;37m<TV:HVS_VALUE><ESC>[1;36m
+Allowed: <TV:HVS_LIMIT>
+New value (Enter keeps it, a single - clears it): } T Settings value prompt
+
+SETSAVED {<ESC>[1;32m
+<TV:HVS_LABEL> set to: <TV:HVS_VALUE>
+} T Setting saved confirmation
+
+SETBAD {<ESC>[1;31m
+That value is not allowed.  Allowed: <TV:HVS_LIMIT>
+} T Invalid setting value
+
+SETNOCLS {<ESC>[1;31m
+There is no class named "<TV:HVS_VALUE>" in your Accounts setup.
+Create the class first, then set it here.
+} T Class name for a method does not exist
+
+SETRSTQ {<ESC>[1;31m
+This replaces ALL Auto Validator settings with the defaults from
+HVSAV.MSG.  Are you sure (Y/N)? } T Reset settings confirmation
+
+SETRSTD {<ESC>[1;32m
+All settings were reset to the HVSAV.MSG defaults.
+} T Settings reset confirmation
+
+LKUPPR {<ESC>[1;36m
+User-ID to look up (or <ESC>[1;37mX<ESC>[1;36m to go back): } T Sysop user lookup prompt
+
+USERINFO {<ESC>[1;36m
+Auto Validator record for <ESC>[1;37m<TV:HVS_USERID><ESC>[1;36m
+
+  Email address....... <ESC>[1;37m<TV:HVS_EMAIL><ESC>[1;36m
+  Validated........... <ESC>[1;37m<TV:HVS_VALID><ESC>[1;36m
+  Pending code........ <ESC>[1;37m<TV:HVS_CODE><ESC>[1;36m
+  Validation method... <ESC>[1;37m<TV:HVS_METHOD><ESC>[1;36m
+  Failed attempts..... <ESC>[1;37m<TV:HVS_ATTEMPTS><ESC>[1;36m
+  Override............ <ESC>[1;37m<TV:HVS_OVERRIDE><ESC>[1;36m
+  Validated users sharing this email: <ESC>[1;37m<TV:HVS_COUNT><ESC>[1;36m
+} T Sysop view of a user's validation record
+
+AUTOQURY {<ESC>[1;36m
+Your account is not validated yet.  Would you like to validate it now (Y/N)? } T Logon offer to validate
+
+ALRDYVLD {<ESC>[1;31m
+The Auto Validator is for new users only.  Exiting Auto Validator.
+} T User lacks the key needed to request validation
+
+POSTVALD {<ESC>[1;35m
+Your account has already been validated.  Email your Sysop if you
+believe this is a mistake.
+} T User is already validated
+
+TOMNYVLD {<ESC>[1;31m
+There have been too many unsuccessful attempts to validate your account.
+Contact the Sysop if you still wish to be validated.
+} T User has used up their validation attempts
+
+CNTEMAIL {<ESC>[1;31m
+Too many users are already validated with that <TV:HVS_EMAILTYP> email
+address.  You cannot be validated with it.  Contact your Sysop if you
+still wish to be validated.
+} T Email address already used by too many validated users
+
+EMALCONT {<ESC>[1;36m
+To validate your account, a validation code will be sent to your
+<TV:HVS_EMAILTYP> email address along with your User-ID.  When the email
+arrives, return to the Auto Validator and enter the code.  You will
+then be a validated user of <TV:SYSTEM_NAME>.
+
+Do you wish to begin email validation now (Y/N)? } T Offer to start email validation
+
+COMEBACK {<ESC>[1;36m
+Return whenever you are ready to be validated.
+} T User declined to validate now
+
+EMALQURY {<ESC>[1;36m
+Please enter your email address (<ESC>[1;37mX<ESC>[1;36m to abort): } T Email address prompt
+
+OOPSQURY {<ESC>[1;31m
+That does not look like a valid email address.
+<ESC>[1;36mPlease enter it in the form name@example.com (<ESC>[1;37mX<ESC>[1;36m to abort): } T Malformed email address
+
+EMAILNO {<ESC>[1;31m
+Sorry, validation codes cannot be sent to that address.  Please use
+an address on another system.
+<ESC>[1;36mPlease enter your email address (<ESC>[1;37mX<ESC>[1;36m to abort): } T Email address refused by BADEMAIL or HVSAVBAD.TXT
+
+MAILSENT {<ESC>[1;32m
+Your validation code has been sent to <ESC>[1;37m<TV:HVS_EMAIL><ESC>[1;32m.
+When it arrives, return to the Auto Validator and enter the code.
+} T Validation email sent
+
+SENDFAIL {<ESC>[1;31m
+The validation email could not be sent.  Please try again later, or
+contact the Sysop.
+} T Validation email could not be sent
+
+MAILQURY {<ESC>[1;36m
+A validation code was emailed to <ESC>[1;37m<TV:HVS_EMAIL><ESC>[1;36m.
+Please enter the code (<ESC>[1;37mX<ESC>[1;36m to exit): } T Ask for the emailed code
+
+MISTYPE {<ESC>[1;31m
+That code does not match.  Perhaps you mistyped it?
+<ESC>[1;36mPlease enter the code (<ESC>[1;37mX<ESC>[1;36m to exit): } T Wrong code entered
+
+SORRY {<ESC>[1;31m
+That code still does not match.  Please email the Sysop about this
+problem.  Sorry for the inconvenience.
+} T Third wrong code in one visit
+
+ABORTCDE {<ESC>[1;36m
+Validation aborted.  Return when you have your code.
+} T User left the code prompt
+
+LATER {<ESC>[1;32m
+You are now a validated member of <TV:SYSTEM_NAME>.  Have a nice day!
+} T Validation succeeded
+
+ADDCRDT {<ESC>[1;32m
+<TV:HVS_CREDITS> credits have been posted to your account.
+} T Credits posted on validation
+
+VALIDERR {<ESC>[1;31m
+Your account could not be fully validated because of a setup problem.
+The Sysop has been notified.
+} T Method class missing at validation time
+
+EMLSUBJ {Your validation code} T Subject line of the validation email
+
+YOUVAL {
+Greetings!
+
+This message was sent to you from <TV:SYSTEM_NAME> because you asked to
+validate your account there.
+
+Call <TV:SYSTEM_NAME> again, log on with your User-ID, and go to the Auto
+Validator.  It will ask for your validation code (below).  Enter it and
+you are all set.
+
+    Your User-ID is: <TV:HVS_USERID>
+    Your code is:    <TV:HVS_CODE>
+
+We hope you enjoy our system.  If you have any questions, please do not
+hesitate to ask!
+} T Body of the validation email (keep it plain text)
+
+GLBLCMND {<ESC>[1;36m
+  Auto Validator Global Commands:
+
+<ESC>[1;37m<TV:HVS_GLOB>V (method) (user)<ESC>[1;36m.. Validate a user with method 1-5.
+                       Example: <TV:HVS_GLOB>V 1 Some User
+<ESC>[1;37m<TV:HVS_GLOB>D (user)<ESC>[1;36m........... Devalidate: clear validation and attempts so
+                       the user can validate again.
+<ESC>[1;37m<TV:HVS_GLOB>E (user)<ESC>[1;36m........... Email the user their code again.
+<ESC>[1;37m<TV:HVS_GLOB>L (user)<ESC>[1;36m........... Look up a user's validation record.
+<ESC>[1;37m<TV:HVS_GLOB>O (user)<ESC>[1;36m........... Toggle the override (ignores attempt and
+                       email limits).
+<ESC>[1;37m<TV:HVS_GLOB>?<ESC>[1;36m.................. Show this list.
+} T Sysop global command list
+
+BADGLOB {<ESC>[1;31m
+That is not a valid Auto Validator command.  Type <TV:HVS_GLOB>? for the list.
+} T Unknown or incomplete global command
+
+WRNGSNTX {<ESC>[1;31m
+The format is: <TV:HVS_GLOB>V (method 1-5) (user)
+} T Bad format for the validate command
+
+DVALSNTX {<ESC>[1;31m
+The format is: <TV:HVS_GLOB>D (user)
+} T Bad format for the devalidate command
+
+EMALSNTX {<ESC>[1;31m
+The format is: <TV:HVS_GLOB>E (user)
+} T Bad format for the email command
+
+OVERSNTX {<ESC>[1;31m
+The format is: <TV:HVS_GLOB>O (user)
+} T Bad format for the override command
+
+LKUPSNTX {<ESC>[1;31m
+The format is: <TV:HVS_GLOB>L (user)
+} T Bad format for the look up command
+
+NOUSER {<ESC>[1;31m
+There is no user "<TV:HVS_USERID>" on this system.
+} T User-ID not found
+
+NOAVREC {<ESC>[1;31m
+"<TV:HVS_USERID>" has never used the Auto Validator.
+} T User has no Auto Validator record
+
+NOEMAIL {<ESC>[1;31m
+<TV:HVS_USERID> has not given an email address.  Nothing was sent.
+} T Resend email for a user with no address
+
+FORCE {<ESC>[1;32m
+<TV:HVS_USERID> has been validated with method <TV:HVS_METHOD>.
+} T Forced validation confirmation
+
+DEVAL {<ESC>[1;32m
+<TV:HVS_USERID> has been devalidated and may now validate again.
+} T Devalidate confirmation
+
+OVERRIDE {<ESC>[1;32m
+The override for <TV:HVS_USERID> is now <TV:HVS_OVERRIDE>.
+} T Override toggle confirmation
+
+RESENT {<ESC>[1;32m
+The validation code was emailed to <TV:HVS_USERID> at <TV:HVS_EMAIL>.
+} T Code resent by the sysop
+
+FSENDBAD {<ESC>[1;31m
+The email to <TV:HVS_USERID> could not be sent.  Check your Internet
+mail settings and the EMAILPFX setting.
+} T Sysop resend failed
