@@ -1,0 +1,240 @@
+
+                          AUTO VALIDATOR  v2.2.0
+                     for The Major BBS v10 (32-bit)
+
+     Copyright (c) 2026 Elwynor Technologies.
+     Originally Copyright (c) 1993-1996 High Velocity Software, Inc.
+     Auto Validator converted for The Major BBS v10 by Mark Laudenbach -
+     https://github.com/laudenbachm
+
+     Licensed under the GNU Affero General Public License v3.0.
+
+
+1. WHAT IS AUTO VALIDATOR?
+--------------------------
+
+Auto Validator checks that a new user has a working email address, then
+upgrades their account automatically.
+
+  1. A new user enters Auto Validator and types their email address.
+  2. Auto Validator emails them a four-character validation code.
+  3. The user calls back, enters Auto Validator again, and types the code.
+  4. Auto Validator validates them: it can switch them to a new class,
+     give them a key, and post credits - whatever you set up for the
+     validation method.
+
+Auto Validator validates by email only.  The phone call-back and postal
+mail methods of version 2.0 have been retired.
+
+
+2. INSTALLING
+-------------
+
+  1. Copy GALAV.DLL, GALAV.MDF, GALAV.MSG and GALAV.RLN into your BBS
+     directory.
+  2. Run the Menu Tree editor and add Auto Validator to your menu.
+  3. Make sure your Internet mail (SMTP) gateway is set up and can send
+     mail out - Auto Validator sends codes through it.
+  4. Start the BBS.
+
+On first start Auto Validator creates its data files:
+
+  GALAVUSR.DAT   one record per user who has used Auto Validator
+  GALAVSET.DAT   Auto Validator's settings
+
+UPGRADING FROM 2.1.0 OR 2.0: up to version 2.1.0 the module's files
+were named HVSAV.*; from 2.2.0 they are named GALAV.*.
+
+  1. With the BBS down, DELETE the old HVSAV.DLL, HVSAV.MDF, HVSAV.MSG
+     and HVSAV.MCV.  Leaving them in place would load both versions.
+  2. Copy in the new GALAV.* files as above.  Your menu entry for Auto
+     Validator keeps working: menus find a module by its name, which
+     has not changed.
+  3. Keep your data files.  On first start Auto Validator renames
+     HVSAVUSR.DAT to GALAVUSR.DAT, HVSAVSET.DAT to GALAVSET.DAT and
+     HVSAVBAD.TXT to GALAVBAD.TXT (each noted in the Audit Trail), so
+     validation records, pending codes and settings carry over.  An
+     activity log you named in the settings keeps its name.
+
+From 2.0 only: HVSAVCFG.DAT and HVSAVNVR.DAT (phone settings and the
+"never call" list) are no longer used and can be deleted.  The
+activation code is gone; no registration is needed.
+
+
+3. SETTING IT UP
+----------------
+
+Settings are changed ONLINE, from the Auto Validator sysop menu, and take
+effect immediately - no restart.  The options in the configuration editor
+(GALAV.MSG, levels 3 and 4) are only the install defaults: they are copied
+into GALAVSET.DAT the first time the module starts.  To copy them in
+again later, use "Reset all settings" in the sysop menu.
+
+Enter Auto Validator with the sysop key (SYSOP by default) to get the
+sysop menu:
+
+  S  Settings        - change any setting below
+  E  Validation email - edit the email's subject and body (section 4)
+  L  Look up a user  - see a user's validation record
+  G  Global commands - list the sysop commands (section 6)
+  X  Exit
+
+Each settings change is written to the Audit Trail and the activity log.
+
+GENERAL SETTINGS
+
+  Key needed to request validation   Only users with this key may use
+                                     Auto Validator.  Blank = anyone.
+  Key for sysop menu and commands    Users with this key get the sysop
+                                     menu and commands, and are never
+                                     validated themselves.  Blank = SYSOP.
+  Method used for email validations  Which method (1-5) a user gets when
+                                     they enter a correct code.
+  Max validated users per email      How many validated users may share
+                                     one email address.
+  Failed validations allowed         Every three wrong codes count as
+                                     one failure, even across visits.
+                                     After this many failures the user
+                                     must be reset by a sysop.  0 = no
+                                     limit (not recommended).
+  Offer validation at logon          YES: unvalidated users are asked at
+                                     logon whether to validate now.
+  Global command trigger             First character of the sysop
+                                     commands (default @).
+  Email type shown to users          How email is described to users,
+                                     e.g. "Internet".
+  Internet email address prefix      Put in front of the user's address
+                                     to route the message out through
+                                     your Internet mail gateway
+                                     (default IN:).  Must match the
+                                     prefix your SMTP gateway uses.
+  Validation email sent from         The From address of the validation
+                                     email, e.g. validate@example.com or
+                                     validate@bbs.example.com.  Blank =
+                                     the Sysop, which the gateway sends
+                                     as sysop@ its host name.
+  Validation email subject           The subject line.  [NAME] stands
+                                     for a text variable (section 4).
+  Email domain refused               A domain users may not validate
+                                     with - usually your own BBS's.
+  Activity log file                  Text log of every validation,
+                                     failure and sysop action.  Blank =
+                                     no log.  Default GALAV.LOG.  Online,
+                                     only a plain file name (in the BBS
+                                     directory) is accepted.
+
+VALIDATION METHODS 1-5
+
+Each method has four settings:
+
+  Class to switch to    The class the user is switched to.  It must exist
+                        in your Accounts setup - Auto Validator will not
+                        let you choose a class that does not exist, and
+                        skips the switch (with an Audit Trail warning) if
+                        the class is later removed.  Blank = no change.
+  Key to give           A key added to the user.  Blank = none.
+  Credits to post       Credits added to the account.  0 = none.
+  Credit type           FREE or PAID, for your accounting.
+
+REFUSING ADDRESSES
+
+Besides the refused domain setting, you can create GALAVBAD.TXT in the
+BBS directory with one entry per line.  Any address that contains one of
+the entries (upper or lower case) is refused.  For example:
+
+     MAILINATOR.COM
+     @MYBBS.EXAMPLE
+
+
+4. THE VALIDATION EMAIL
+-----------------------
+
+The email is sent through your Internet mail (SMTP) gateway.
+
+FROM ADDRESS.  Set "Validation email sent from" (Settings, General) to
+the address users should see, such as validate@example.com.  It must be
+a full address.  Use whatever your domain's mail is set up for - your
+host name or just your domain.  Choose an address that can receive
+mail: bounces and replies go to it.  Leave it blank to send as the
+Sysop, as versions before 2.2.0 did.
+
+SUBJECT AND BODY.  Choose "Validation email" (E) in the sysop menu.  It
+shows the current From address, subject and body, and offers:
+
+  E  Edit the subject and body in the BBS editor.  The subject is the
+     editor's topic line.  Save to use the new text from the next email
+     sent; quit to leave it unchanged.
+  R  Restore the default subject and body.
+
+In the subject and the body, [NAME] is replaced by the BBS text variable
+NAME when the email is sent:
+
+  [GALAV_USERID]   the user's User-ID
+  [GALAV_CODE]     the validation code - leave this in the body!
+  [GALAV_EMAIL]    the user's email address
+  [SYSTEM_NAME]    your system's name
+
+Any text variable registered on your BBS may be used.  Text in brackets
+that is not a text variable name is sent as typed.
+
+The edited body is kept in GALAVEML.TXT in the BBS directory, a plain
+text file you may also edit with any text editor.  Without that file
+the default body is used: the YOUVAL message in GALAV.MSG (level 6).
+The subject is a setting, so it can also be changed on the General
+settings page.  The email is sent as plain text: color codes are
+removed.
+
+
+5. WHAT USERS SEE
+-----------------
+
+A new user entering Auto Validator is asked whether to begin email
+validation, then for their email address.  The address must look like
+name@example.com.  The code is emailed, and the user is told to come
+back.
+
+When they return, Auto Validator asks for the code.  Every three wrong
+codes count as one failed validation, whether they come in one visit or
+several.  A correct code validates them at once.
+
+Users who are already validated, who lack the request key, or who have
+used up their failed attempts are told so and returned to the menu.
+
+The wording of every screen is in GALAV.MSG (level 6) and can be changed
+in the configuration editor.  Values such as the user's address appear
+as text variables (GALAV_EMAIL, GALAV_CODE, ...) that you may move or
+remove.  The email itself is described in section 4.
+
+
+6. SYSOP GLOBAL COMMANDS
+------------------------
+
+Usable from anywhere on the system by users with the sysop key.  Shown
+here with the default trigger, @.
+
+  @V n user   Validate a user with method n (1-5).
+              Example: @V 1 Some User
+  @D user     Devalidate: clears validated status, attempts and any
+              pending code, so the user can validate again.  (Their
+              class is not changed back.)
+  @E user     Email the user their code again (a new code is made if
+              they have none).
+  @L user     Show the user's validation record.
+  @O user     Toggle the override: an overridden user is not stopped by
+              the failed-attempt or shared-address limits.
+  @?          List these commands.
+
+
+7. FILES
+--------
+
+  GALAV.DLL      the module
+  GALAV.MDF      module description
+  GALAV.MSG      text and install-default options (the BBS builds
+                 GALAV.MCV from it)
+  GALAV.RLN      this manual
+  GALAVUSR.DAT   user validation records (created automatically)
+  GALAVSET.DAT   settings (created automatically)
+  GALAVEML.TXT   the edited email body (written by the sysop menu)
+  GALAV.LOG      activity log (name set in the settings)
+  GALAVBAD.TXT   optional list of refused addresses (you create it)
