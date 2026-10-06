@@ -1,10 +1,10 @@
-/* Build 26.10.01.1 03:48PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
  *   AVSET.C                                Auto Validator - Live settings    *
  *                                                                           *
  *   Copyright (C) 2026 Elwynor Technologies.                                *
  *                                                                           *
- *   Loads, seeds and saves the settings record (HVSAVSET.DAT), and          *
+ *   Loads, seeds and saves the settings record (GALAVSET.DAT), and          *
  *   describes each setting - its label, its allowed values, where it lives  *
  *   in the record, and which CNF option supplies its install default - so   *
  *   the sysop editor in AVSYSOP.C can list and change them generically.     *
@@ -20,12 +20,12 @@
 #include "AVSET.H"
 
 struct avsetdat avcfg;               /* the live settings                    */
-static DFAFILE *avsdat;              /* HVSAVSET.DAT                         */
+static DFAFILE *avsdat;              /* GALAVSET.DAT                         */
 
 /* ------------------------------------------------------------------------ *
  * Setting types.                                                           *
  * ------------------------------------------------------------------------ */
-enum { T_KEY, T_CLS, T_STR, T_NUM, T_LNG, T_BOOL, T_CHR, T_PAY };
+enum { T_KEY, T_CLS, T_STR, T_NUM, T_LNG, T_BOOL, T_CHR, T_PAY, T_ADR, T_FIL };
 
 struct setdef {
      INT type;                       /* T_xxx                                */
@@ -42,15 +42,17 @@ struct setdef {
 static const struct setdef gendefs[] = {
      { T_KEY,  VALIDKEY, OFS(vldkey),   KEYSIZ,     0,   0, "Key needed to request validation" },
      { T_KEY,  CNFGACES, OFS(cfgkey),   KEYSIZ,     0,   0, "Key for sysop menu and commands" },
-     { T_NUM,  EMAILMTD, OFS(emlmeth),  0,          1,   HVS_NMETH, "Method used for email validations" },
+     { T_NUM,  EMAILMTD, OFS(emlmeth),  0,          1,   GALAV_NMETH, "Method used for email validations" },
      { T_NUM,  MAXEMAIL, OFS(maxemail), 0,          1, 100, "Max validated users per email" },
      { T_NUM,  MAXATMPT, OFS(maxatmpt), 0,          0, 100, "Failed validations allowed (0=any)" },
      { T_BOOL, AVATLOGN, OFS(asklogon), 0,          0,   0, "Offer validation at logon" },
      { T_CHR,  AVGLOB,   OFS(globchr),  0,          0,   0, "Global command trigger" },
      { T_STR,  EMAILTYP, OFS(emltype),  AVS_TYPSIZ, 0,   0, "Email type shown to users" },
      { T_STR,  EMAILPFX, OFS(emlpfx),   AVS_PFXSIZ, 0,   0, "Internet email address prefix" },
+     { T_ADR,  FROMADDR, OFS(fromadr),  AVS_FROMSIZ,0,   0, "Validation email sent from" },
+     { T_STR,  EMLSUBJ,  OFS(emlsubj),  AVS_SUBSIZ, 0,   0, "Validation email subject" },
      { T_STR,  BADEMAIL, OFS(bademail), AVS_BADSIZ, 0,   0, "Email domain refused" },
-     { T_STR,  LOGFILE,  OFS(logfile),  AVS_LOGSIZ, 0,   0, "Activity log file (blank=off)" },
+     { T_FIL,  LOGFILE,  OFS(logfile),  AVS_LOGSIZ, 0,   0, "Activity log file (blank=off)" },
 };
 #define NGEN (sizeof(gendefs) / sizeof(gendefs[0]))
 
@@ -64,7 +66,7 @@ static const struct setdef methdefs[] = {
      { T_PAY, MTD1PAYM, MOFS(paid),  0,      0, 0,        "Credit type" },
 };
 #define NMDEF (sizeof(methdefs) / sizeof(methdefs[0]))
-#define NSET  (NGEN + HVS_NMETH * NMDEF)
+#define NSET  (NGEN + GALAV_NMETH * NMDEF)
 
 /* Look up setting idx (0..NSET-1): its definition, its storage, and the    */
 /* CNF option it defaults from.                                             */
@@ -84,7 +86,7 @@ setdef(INT idx, VOID **where, INT *msgnum)
 
           d = &methdefs[f];
           *where = (CHAR *)&avcfg.meth[m] + d->offset;
-          /* MTDnCLS, KEY, CRED, PAYM are consecutive in HVSAV.MSG.         */
+          /* MTDnCLS, KEY, CRED, PAYM are consecutive in GALAV.MSG.         */
           *msgnum = d->msgnum + m * (INT)NMDEF;
      }
      return d;
@@ -94,8 +96,8 @@ setdef(INT idx, VOID **where, INT *msgnum)
  * File handling.                                                           *
  * ------------------------------------------------------------------------ */
 
-static VOID
-set_save(VOID)                       /* write avcfg to HVSAVSET.DAT          */
+VOID
+set_save(VOID)                       /* write avcfg to GALAVSET.DAT          */
 {
      struct avsetrec rec;
 
@@ -111,6 +113,42 @@ set_save(VOID)                       /* write avcfg to HVSAVSET.DAT          */
           dfaInsert(&rec);
      }
      dfaRstBlk();
+}
+
+static GBOOL
+goodaddr(const CHAR *s)              /* is s a plausible name@domain.tld?    */
+{
+     const CHAR *at = strchr(s, '@'), *dot;
+
+     if (at == NULL || at == s || strchr(at + 1, '@') != NULL) {
+          return FALSE;
+     }
+     dot = strrchr(at + 1, '.');
+     if (dot == NULL || dot == at + 1 || dot[1] == '\0') {
+          return FALSE;
+     }
+     for ( ; *s != '\0' ; s++) {
+          if (!isgraph((UCHAR)*s) || strchr("<>()[],;:\\\"%", *s) != NULL) {
+               return FALSE;
+          }
+     }
+     return TRUE;
+}
+
+static GBOOL
+plainname(const CHAR *s)             /* a file name with no drive or folder? */
+{
+     /* The sysop key may be given to co-sysops, so the online editor must */
+     /* not let it name an arbitrary file to append the log to.             */
+     if (*s == '\0' || *s == '.') {
+          return FALSE;
+     }
+     for ( ; *s != '\0' ; s++) {
+          if (!isgraph((UCHAR)*s) || strchr("\\/:*?\"<>|", *s) != NULL) {
+               return FALSE;
+          }
+     }
+     return TRUE;
 }
 
 static VOID
@@ -142,6 +180,13 @@ set_sanity(VOID)                     /* keep loaded values inside limits     */
                     *(CHAR *)where = '@';
                }
                break;
+          case T_ADR:
+               /* It goes into the mail header: never trust it unchecked.   */
+               ((CHAR *)where)[d->size - 1] = '\0';
+               if (*(CHAR *)where != '\0' && !goodaddr((CHAR *)where)) {
+                    *(CHAR *)where = '\0';
+               }
+               break;
           default:                   /* strings: guarantee termination       */
                ((CHAR *)where)[d->size - 1] = '\0';
                break;
@@ -149,39 +194,63 @@ set_sanity(VOID)                     /* keep loaded values inside limits     */
      }
 }
 
+static VOID
+loadone(INT idx)                     /* copy one CNF option into avcfg       */
+{                                    /*   (caller selects avmb with setmbk)  */
+     INT msgnum;
+     VOID *where;
+     CHAR *s;
+     const struct setdef *d = setdef(idx, &where, &msgnum);
+
+     switch (d->type) {
+     case T_NUM:
+          *(SHORT *)where = (SHORT)numopt(msgnum, (INT)d->min, (INT)d->max);
+          break;
+     case T_LNG:
+          *(LONG *)where = lngopt(msgnum, d->min, d->max);
+          break;
+     case T_BOOL:
+          *(SHORT *)where = (SHORT)(ynopt(msgnum) != 0);
+          break;
+     case T_CHR:
+          *(CHAR *)where = (CHAR)chropt(msgnum);
+          break;
+     case T_PAY:
+          *(SHORT *)where = (SHORT)(tokopt(msgnum, "FREE", "PAID", NULL) == 2);
+          break;
+     default:                        /* T_KEY, T_CLS, T_STR, T_ADR, T_FIL    */
+          s = stgopt(msgnum);
+          stzcpy((CHAR *)where, s, d->size);
+          free(s);
+          break;
+     }
+}
+
 VOID
 set_defaults(VOID)                   /* copy the CNF options in, and save    */
 {
-     INT i, msgnum;
-     VOID *where;
-     CHAR *s;
+     INT i;
 
      setmbk(avmb);
      setmem(&avcfg, sizeof(avcfg), 0);
      for (i = 0 ; i < (INT)NSET ; i++) {
-          const struct setdef *d = setdef(i, &where, &msgnum);
+          loadone(i);
+     }
+     rstmbk();
+     set_sanity();
+     set_save();
+}
 
-          switch (d->type) {
-          case T_NUM:
-               *(SHORT *)where = (SHORT)numopt(msgnum, (INT)d->min, (INT)d->max);
-               break;
-          case T_LNG:
-               *(LONG *)where = lngopt(msgnum, d->min, d->max);
-               break;
-          case T_BOOL:
-               *(SHORT *)where = (SHORT)(ynopt(msgnum) != 0);
-               break;
-          case T_CHR:
-               *(CHAR *)where = (CHAR)chropt(msgnum);
-               break;
-          case T_PAY:
-               *(SHORT *)where = (SHORT)(tokopt(msgnum, "FREE", "PAID", NULL) == 2);
-               break;
-          default:                   /* T_KEY, T_CLS, T_STR                  */
-               s = stgopt(msgnum);
-               stzcpy((CHAR *)where, s, d->size);
-               free(s);
-               break;
+VOID
+set_default1(                        /* reload one setting from its option   */
+INT msgnum)                          /*   its CNF option (general page only) */
+{
+     INT i;
+
+     setmbk(avmb);
+     for (i = 0 ; i < (INT)NGEN ; i++) {
+          if (gendefs[i].msgnum == msgnum) {
+               loadone(i);
           }
      }
      rstmbk();
@@ -217,12 +286,16 @@ set_open(VOID)                       /* open file; load settings or seed them*/
           dfaRstBlk();
           avcfg = rec.d;
           set_sanity();
+          if (avcfg.layout < 2) {    /* a 2.1.0 record: seed the new fields  */
+               set_default1(FROMADDR);
+               set_default1(EMLSUBJ);
+          }
           return;
      }
      dfaRstBlk();
-     set_defaults();                 /* first start: seed from HVSAV.MSG     */
-     shocst("HVSAV SETTINGS CREATED",
-            "Auto Validator settings seeded from HVSAV.MSG defaults");
+     set_defaults();                 /* first start: seed from GALAV.MSG     */
+     shocst("GALAV SETTINGS CREATED",
+            "Auto Validator settings seeded from GALAV.MSG defaults");
 }
 
 VOID
@@ -300,7 +373,7 @@ set_value(INT idx)                   /* current value, ready for display     */
           break;
      default:
           if (*(CHAR *)where == '\0') {
-               strcpy(buf, "(none)");
+               strcpy(buf, d->type == T_ADR ? "(default)" : "(none)");
           }
           else {
                stzcpy(buf, (CHAR *)where, sizeof(buf));
@@ -337,6 +410,14 @@ set_limit(INT idx)                   /* describe the allowed values          */
           break;
      case T_CLS:
           sprintf(buf, "an existing class name, up to %d characters", d->size - 1);
+          break;
+     case T_ADR:
+          sprintf(buf, "a full address (name@example.com), up to %d characters",
+                  d->size - 1);
+          break;
+     case T_FIL:
+          sprintf(buf, "a file name in the BBS directory, up to %d characters",
+                  d->size - 1);
           break;
      default:
           sprintf(buf, "text, up to %d characters", d->size - 1);
@@ -429,6 +510,19 @@ const CHAR *text)                    /*   what was typed, already trimmed    */
           break;
      case T_KEY:
           if (!clear && ((INT)strlen(text) >= d->size || !noblanks(text))) {
+               return SETCHG_BAD;
+          }
+          stzcpy((CHAR *)where, clear ? "" : text, d->size);
+          break;
+     case T_FIL:
+          if (!clear && ((INT)strlen(text) >= d->size || !plainname(text))) {
+               return SETCHG_BAD;
+          }
+          stzcpy((CHAR *)where, clear ? "" : text, d->size);
+          break;
+     case T_ADR:
+          /* Blank means the gateway's own default (Sysop at the SMTP host). */
+          if (!clear && ((INT)strlen(text) >= d->size || !goodaddr(text))) {
                return SETCHG_BAD;
           }
           stzcpy((CHAR *)where, clear ? "" : text, d->size);

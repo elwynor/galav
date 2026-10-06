@@ -1,4 +1,4 @@
-/* Build 26.10.01.1 03:48PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
  *   AVLOG.C                                 Auto Validator - Activity log    *
  *                                                                           *
@@ -6,7 +6,7 @@
  *   Originally (C) Copyright 1995 High Velocity Software, Inc.              *
  *                                                                           *
  *   Appends one dated line per event to the log file named by the LOGFILE   *
- *   setting (HVSAV.LOG by default).  An empty setting turns logging off.    *
+ *   setting (GALAV.LOG by default).  An empty setting turns logging off.    *
  *   The file is opened and closed for each line, so a sysop can read or     *
  *   rotate it at any time.                                                  *
  *                                                                           *
@@ -34,7 +34,7 @@ const CHAR *fmt,                     /*   printf-style text of the event     */
      }
      if ((fp = fopen(avcfg.logfile, "a")) == NULL) {
           if (!warned) {
-               shocst("HVSAV LOG FILE ERROR",
+               shocst("GALAV LOG FILE ERROR",
                       "Auto Validator could not open %s", avcfg.logfile);
                warned = TRUE;
           }

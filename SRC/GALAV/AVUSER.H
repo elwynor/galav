@@ -1,11 +1,11 @@
-/* Build 26.10.01.1 03:48PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
  *   AVUSER.H                           Auto Validator - User records file    *
  *                                                                           *
  *   Copyright (C) 2026 Elwynor Technologies.                                *
  *   Originally (C) Copyright 1995 High Velocity Software, Inc.              *
  *                                                                           *
- *   HVSAVUSR.DAT holds one record per user who has used the Auto            *
+ *   GALAVUSR.DAT holds one record per user who has used the Auto            *
  *   Validator.  The record layout is byte-for-byte the one Auto Validator   *
  *   2.0 used on Worldgroup for NT, so a board upgrading from 2.0 keeps its  *
  *   existing file.  Fields that belonged to the retired phone-callback      *
@@ -20,7 +20,7 @@
 #include <stddef.h>
 #include "AVDEFS.H"
 
-#define AVU_FILE    "HVSAVUSR.DAT"
+#define AVU_FILE    "GALAVUSR.DAT"
 #define AVU_EMLSIZ  60               /* email address field, incl. the NUL   */
 #define AVU_RECLEN  200              /* fixed record length (2.0 compatible) */
 
@@ -39,23 +39,26 @@ struct avuser {
      CHAR number[5];                 /*  38  retired: phone number           */
      CHAR email[AVU_EMLSIZ];         /*  43  email address, upper case (key 2)*/
      CHAR valid_phone[30];           /* 103  retired: number validated from  */
-     SHORT code;                     /* 134  pending code, HVS_NOCODE if none*/
+     SHORT code;                     /* 134  pending code, or GALAV_NOCODE   */
      SHORT method;                   /* 136  method to apply (1-5)           */
      SHORT validated;                /* 138  1 once validated                */
      SHORT dial_one;                 /* 140  retired                         */
      SHORT dial_area;                /* 142  retired                         */
      SHORT attempts;                 /* 144  failed validations so far       */
      SHORT override;                 /* 146  1 = ignore attempt/email limits */
-     CHAR spare[51];                 /* 148  unused                          */
+     SHORT badcodes;                 /* 148  wrong codes not yet counted as a*/
+                                     /*      failure (2.2.0; was spare)      */
+     CHAR spare[49];                 /* 150  unused                          */
 };
 #pragma pack(pop)
 
 /* Compile-time layout checks: if any of these fail, the record no longer     */
-/* matches existing HVSAVUSR.DAT files.                                       */
+/* matches existing GALAVUSR.DAT files.                                       */
 typedef CHAR avu_chk_size[(sizeof(struct avuser) == AVU_RECLEN) ? 1 : -1];
 typedef CHAR avu_chk_email[(offsetof(struct avuser, email) == 43) ? 1 : -1];
 typedef CHAR avu_chk_code[(offsetof(struct avuser, code) == 134) ? 1 : -1];
 typedef CHAR avu_chk_ovr[(offsetof(struct avuser, override) == 146) ? 1 : -1];
+typedef CHAR avu_chk_bad[(offsetof(struct avuser, badcodes) == 148) ? 1 : -1];
 
 VOID  avu_open(VOID);                /* open (creating if needed)            */
 VOID  avu_close(VOID);

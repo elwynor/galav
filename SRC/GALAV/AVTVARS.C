@@ -1,10 +1,10 @@
-/* Build 26.10.01.1 03:48PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
  *   AVTVARS.C                            Auto Validator - Text variables     *
  *                                                                           *
  *   Copyright (C) 2026 Elwynor Technologies.                                *
  *                                                                           *
- *   Every changing value in HVSAV.MSG (a user-id, an email address, a       *
+ *   Every changing value in GALAV.MSG (a user-id, an email address, a       *
  *   code) is a named text variable - the byte sequence                      *
  *   0x01 <justify> <width+32> NAME 0x01 - rather than a printf-style %s.    *
  *   That lets sysops reword, reorder or drop values when they edit the      *
@@ -19,7 +19,7 @@
  *   For text that does not go through prfmsg() - the validation email,      *
  *   built with xlttxv() - call tv_raw(TRUE) to turn the doubling off.       *
  *                                                                           *
- *   Names are global to the whole BBS, so all of ours start with HVS_.     *
+ *   Names are global to the whole BBS, so all of ours start with GALAV_.   *
  *                                                                           *
  *   Licensed under the GNU Affero General Public License v3.0.              *
  *****************************************************************************/
@@ -71,28 +71,34 @@ static CHAR *tvVALUE(VOID)    { return tvget(TV_VALUE);    }
 static CHAR *tvPAGE(VOID)     { return tvget(TV_PAGE);     }
 static CHAR *tvLIMIT(VOID)    { return tvget(TV_LIMIT);    }
 static CHAR *tvGLOB(VOID)     { return tvget(TV_GLOB);     }
-static CHAR *tvVERSION(VOID)  { return HVS_VERSION;        }
+static CHAR *tvFROM(VOID)     { return tvget(TV_FROM);     }
+static CHAR *tvSUBJECT(VOID)  { return tvget(TV_SUBJECT);  }
+static CHAR *tvBODYSRC(VOID)  { return tvget(TV_BODYSRC);  }
+static CHAR *tvVERSION(VOID)  { return GALAV_VERSION;     }
 
 VOID
 tv_init(VOID)                        /* register all of our text variables   */
 {
-     register_textvar("HVS_USERID",   tvUSERID);
-     register_textvar("HVS_EMAIL",    tvEMAIL);
-     register_textvar("HVS_EMAILTYP", tvEMAILTYP);
-     register_textvar("HVS_CODE",     tvCODE);
-     register_textvar("HVS_CREDITS",  tvCREDITS);
-     register_textvar("HVS_COUNT",    tvCOUNT);
-     register_textvar("HVS_ATTEMPTS", tvATTEMPTS);
-     register_textvar("HVS_VALID",    tvVALID);
-     register_textvar("HVS_OVERRIDE", tvOVERRIDE);
-     register_textvar("HVS_METHOD",   tvMETHOD);
-     register_textvar("HVS_ITEM",     tvITEM);
-     register_textvar("HVS_LABEL",    tvLABEL);
-     register_textvar("HVS_VALUE",    tvVALUE);
-     register_textvar("HVS_PAGE",     tvPAGE);
-     register_textvar("HVS_LIMIT",    tvLIMIT);
-     register_textvar("HVS_GLOB",     tvGLOB);
-     register_textvar("HVS_VERSION",  tvVERSION);
+     register_textvar("GALAV_USERID",   tvUSERID);
+     register_textvar("GALAV_EMAIL",    tvEMAIL);
+     register_textvar("GALAV_EMAILTYP", tvEMAILTYP);
+     register_textvar("GALAV_CODE",     tvCODE);
+     register_textvar("GALAV_CREDITS",  tvCREDITS);
+     register_textvar("GALAV_COUNT",    tvCOUNT);
+     register_textvar("GALAV_ATTEMPTS", tvATTEMPTS);
+     register_textvar("GALAV_VALID",    tvVALID);
+     register_textvar("GALAV_OVERRIDE", tvOVERRIDE);
+     register_textvar("GALAV_METHOD",   tvMETHOD);
+     register_textvar("GALAV_ITEM",     tvITEM);
+     register_textvar("GALAV_LABEL",    tvLABEL);
+     register_textvar("GALAV_VALUE",    tvVALUE);
+     register_textvar("GALAV_PAGE",     tvPAGE);
+     register_textvar("GALAV_LIMIT",    tvLIMIT);
+     register_textvar("GALAV_GLOB",     tvGLOB);
+     register_textvar("GALAV_FROM",     tvFROM);
+     register_textvar("GALAV_SUBJECT",  tvSUBJECT);
+     register_textvar("GALAV_BODYSRC",  tvBODYSRC);
+     register_textvar("GALAV_VERSION",  tvVERSION);
 }
 
 VOID

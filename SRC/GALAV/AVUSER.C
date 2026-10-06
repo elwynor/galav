@@ -1,11 +1,11 @@
-/* Build 26.10.01.1 03:48PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
  *   AVUSER.C                           Auto Validator - User records file    *
  *                                                                           *
  *   Copyright (C) 2026 Elwynor Technologies.                                *
  *   Originally (C) Copyright 1995 High Velocity Software, Inc.              *
  *                                                                           *
- *   Reads and writes HVSAVUSR.DAT.  Every routine selects our file with     *
+ *   Reads and writes GALAVUSR.DAT.  Every routine selects our file with     *
  *   dfaSetBlk() and restores the previous selection with dfaRstBlk(), so    *
  *   callers never have to think about which Btrieve file is current.        *
  *                                                                           *
@@ -16,7 +16,7 @@
 #include "majorbbs.h"
 #include "AVUSER.H"
 
-static DFAFILE *avudat;              /* HVSAVUSR.DAT                         */
+static DFAFILE *avudat;              /* GALAVUSR.DAT                         */
 
 VOID
 avu_open(VOID)                       /* open the user file, create if absent */
@@ -95,7 +95,7 @@ struct avuser *rec)                  /*   receives the new record            */
 {
      setmem(rec, sizeof(*rec), 0);
      stzcpy(rec->userid, userid, UIDSIZ);
-     rec->code = HVS_NOCODE;
+     rec->code = GALAV_NOCODE;
      rec->method = 1;
      dfaSetBlk(avudat);
      dfaInsert(rec);

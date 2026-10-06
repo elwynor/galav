@@ -1,9 +1,9 @@
-LEVEL3 {}
+LEVEL3 {Auto Validator}
 
  AUTO VALIDATOR - SECURITY AND ACCOUNTING
 
  These are INSTALL DEFAULTS.  The first time Auto Validator starts it
- copies these values into its settings file (HVSAVSET.DAT).  After that,
+ copies these values into its settings file (GALAVSET.DAT).  After that,
  change settings ONLINE from the Auto Validator sysop menu (Settings) -
  changes made there take effect immediately, without a restart.  To
  re-apply the values below, use "Reset settings to defaults" in that
@@ -170,7 +170,7 @@ MTD5CRED {Credits posted for method 5 validations: 0} L 0 1000000
 
 MTD5PAYM {Credit type for method 5 validations: FREE} E FREE PAID
 
-LEVEL4 {}
+LEVEL4 {Auto Validator}
 
  AUTO VALIDATOR - GENERAL CONFIGURATION
 
@@ -208,20 +208,42 @@ EMAILTYP {Internet} S 20 Type of email address (shown to users)
 
 EMAILPFX {IN:} S 5 Internet email address prefix
 
+ The address the validation email is sent FROM, for example
+ validate@bbs.example.com or validate@example.com - your host name or
+ just your domain, whichever your mail is set up for.  Use a full
+ address.  Leave empty to send as the Sysop, which your Internet mail
+ gateway turns into sysop@ followed by its own host name (the way
+ versions before 2.2.0 always sent it).
+
+ Default: (none)
+
+FROMADDR {} S 60 Address the validation email is sent from
+
+ The subject line of the validation email.  [NAME] is replaced by the
+ text variable NAME, for example [SYSTEM_NAME] for your system's name
+ or [GALAV_USERID] for the user's User-ID.  The subject and the body of
+ the email can also be edited online from the Auto Validator sysop
+ menu (Validation email).
+
+ Default: Your validation code
+
+EMLSUBJ {Your validation code} S 50 Subject of the validation email
+
  An email domain that may not be used for validation - typically your
  own BBS's domain, so users cannot validate with a mailbox on your own
  system.  Leave empty to allow all domains.  For a longer list, put
- one entry per line in HVSAVBAD.TXT in the BBS directory; any address
+ one entry per line in GALAVBAD.TXT in the BBS directory; any address
  containing one of those entries is refused.
 
  Default: (none)
 
 BADEMAIL {} S 37 Email domain refused for validation
 
- The number of times a user may fail validation (three wrong codes in
- one visit counts as one failure).  After that the sysop must reset
- them with the devalidate (@D) or override (@O) global command.  Zero
- means no limit.
+ The number of times a user may fail validation (every three wrong
+ codes count as one failure, even if spread over several visits).
+ After that the sysop must reset them with the devalidate (@D) or
+ override (@O) global command.  Zero means no limit - not recommended,
+ since it lets a user keep guessing codes.
 
  Default: 3
 
@@ -229,18 +251,20 @@ MAXATMPT {Failed validations allowed per user: 3} N 0 100
 
  The Auto Validator activity log, a text file in the BBS directory.
  Every validation, failure and sysop action is logged with the date
- and time.  Leave empty to disable logging.
+ and time.  Leave empty to disable logging.  When changed online from
+ the sysop menu it must be a plain file name, with no drive or folder.
 
- Default: HVSAV.LOG
+ Default: GALAV.LOG
 
-LOGFILE {HVSAV.LOG} S 40 Auto Validator activity log file
+LOGFILE {GALAV.LOG} S 40 Auto Validator activity log file
 
-LEVEL6 {}
+LEVEL6 {Auto Validator}
 
 SYSMENU {<ESC>[1;36m
-Auto Validator v<TV:HVS_VERSION> - Sysop Menu
+Auto Validator v<TV:GALAV_VERSION> - Sysop Menu
 
   <ESC>[1;36m(<ESC>[1;37mS<ESC>[1;36m) Settings
+  <ESC>[1;36m(<ESC>[1;37mE<ESC>[1;36m) Validation email (from, subject and body)
   <ESC>[1;36m(<ESC>[1;37mL<ESC>[1;36m) Look up a user
   <ESC>[1;36m(<ESC>[1;37mG<ESC>[1;36m) Show the sysop global commands
   <ESC>[1;36m(<ESC>[1;37mX<ESC>[1;36m) Exit Auto Validator
@@ -248,7 +272,7 @@ Auto Validator v<TV:HVS_VERSION> - Sysop Menu
 
 SYSPRMPT {<ESC>[1;36m
 <ESC>[1;32mAuto Validator Sysop Menu<ESC>[1;36m
-Make your selection (<ESC>[1;37mS,L,G,? <ESC>[1;36mfor help, or <ESC>[1;37mX<ESC>[1;36m to exit): } T Sysop main menu prompt
+Make your selection (<ESC>[1;37mS,E,L,G,? <ESC>[1;36mfor help, or <ESC>[1;37mX<ESC>[1;36m to exit): } T Sysop main menu prompt
 
 SYSHELP {<ESC>[1;35m
 ...Auto Validator validates new users by email.  A user enters the
@@ -266,7 +290,7 @@ Auto Validator Settings (changes apply immediately)
 
   <ESC>[1;36m(<ESC>[1;37mG<ESC>[1;36m) General settings
   <ESC>[1;36m(<ESC>[1;37m1<ESC>[1;36m-<ESC>[1;37m5<ESC>[1;36m) Validation method 1-5 settings
-  <ESC>[1;36m(<ESC>[1;37mR<ESC>[1;36m) Reset all settings to the HVSAV.MSG defaults
+  <ESC>[1;36m(<ESC>[1;37mR<ESC>[1;36m) Reset all settings to the GALAV.MSG defaults
   <ESC>[1;36m(<ESC>[1;37mX<ESC>[1;36m) Return to the sysop menu
 } T Settings menu
 
@@ -275,55 +299,98 @@ SETPRMPT {<ESC>[1;36m
 Make your selection (<ESC>[1;37mG,1-5,R <ESC>[1;36mor <ESC>[1;37mX<ESC>[1;36m to go back): } T Settings menu prompt
 
 SETHDR {<ESC>[1;36m
-<ESC>[1;32m<TV:HVS_PAGE><ESC>[1;34m
+<ESC>[1;32m<TV:GALAV_PAGE><ESC>[1;34m
 -----------------------------------------------------------------------
 } T Header of a settings page
 
-SETROW {<ESC>[1;36m  (<ESC>[1;37m<TV:HVS_ITEM:R:2><ESC>[1;36m) <TV:HVS_LABEL:L:34> <ESC>[1;37m<TV:HVS_VALUE>
+SETROW {<ESC>[1;36m  (<ESC>[1;37m<TV:GALAV_ITEM:R:2><ESC>[1;36m) <TV:GALAV_LABEL:L:34> <ESC>[1;37m<TV:GALAV_VALUE>
 } T One row of a settings page
 
 SETPGPR {<ESC>[1;36m
 Item number to change, or <ESC>[1;37mX<ESC>[1;36m to go back: } T Settings page prompt
 
 SETVALPR {<ESC>[1;36m
-<TV:HVS_LABEL> is now: <ESC>[1;37m<TV:HVS_VALUE><ESC>[1;36m
-Allowed: <TV:HVS_LIMIT>
+<TV:GALAV_LABEL> is now: <ESC>[1;37m<TV:GALAV_VALUE><ESC>[1;36m
+Allowed: <TV:GALAV_LIMIT>
 New value (Enter keeps it, a single - clears it): } T Settings value prompt
 
 SETSAVED {<ESC>[1;32m
-<TV:HVS_LABEL> set to: <TV:HVS_VALUE>
+<TV:GALAV_LABEL> set to: <TV:GALAV_VALUE>
 } T Setting saved confirmation
 
 SETBAD {<ESC>[1;31m
-That value is not allowed.  Allowed: <TV:HVS_LIMIT>
+That value is not allowed.  Allowed: <TV:GALAV_LIMIT>
 } T Invalid setting value
 
 SETNOCLS {<ESC>[1;31m
-There is no class named "<TV:HVS_VALUE>" in your Accounts setup.
+There is no class named "<TV:GALAV_VALUE>" in your Accounts setup.
 Create the class first, then set it here.
 } T Class name for a method does not exist
 
 SETRSTQ {<ESC>[1;31m
 This replaces ALL Auto Validator settings with the defaults from
-HVSAV.MSG.  Are you sure (Y/N)? } T Reset settings confirmation
+GALAV.MSG.  Are you sure (Y/N)? } T Reset settings confirmation
 
 SETRSTD {<ESC>[1;32m
-All settings were reset to the HVSAV.MSG defaults.
+All settings were reset to the GALAV.MSG defaults.
 } T Settings reset confirmation
+
+EMLMENU {<ESC>[1;36m
+Validation Email
+
+  Sent from... <ESC>[1;37m<TV:GALAV_FROM><ESC>[1;36m
+  Subject..... <ESC>[1;37m<TV:GALAV_SUBJECT><ESC>[1;36m
+  Body........ <ESC>[1;37m<TV:GALAV_BODYSRC><ESC>[1;36m
+
+  The From address is a setting (Settings, General).  In the subject
+  and body, [NAME] is replaced by the text variable NAME when the email
+  is sent:
+    <ESC>[1;37m[GALAV_USERID]<ESC>[1;36m the User-ID    <ESC>[1;37m[GALAV_CODE]<ESC>[1;36m  the validation code
+    <ESC>[1;37m[GALAV_EMAIL]<ESC>[1;36m  the address    <ESC>[1;37m[SYSTEM_NAME]<ESC>[1;36m your system's name
+
+  <ESC>[1;36m(<ESC>[1;37mE<ESC>[1;36m) Edit the subject and body
+  <ESC>[1;36m(<ESC>[1;37mR<ESC>[1;36m) Restore the default subject and body
+  <ESC>[1;36m(<ESC>[1;37mX<ESC>[1;36m) Return to the sysop menu
+} T Validation email menu
+
+EMLPRMPT {<ESC>[1;36m
+<ESC>[1;32mValidation Email<ESC>[1;36m
+Make your selection (<ESC>[1;37mE,R <ESC>[1;36mor <ESC>[1;37mX<ESC>[1;36m to go back): } T Validation email menu prompt
+
+EMLSAVED {<ESC>[1;32m
+The validation email was saved.  It is used from the next email sent.
+} T Validation email saved after editing
+
+EMLKEPT {<ESC>[1;36m
+Editing abandoned.  The validation email was not changed.
+} T Validation email editing abandoned
+
+EMLWRERR {<ESC>[1;31m
+The body could not be written to GALAVEML.TXT.  Check the disk and the
+file's permissions in the BBS directory.
+} T Validation email body could not be saved
+
+EMLRSTQ {<ESC>[1;31m
+This replaces the validation email subject with the GALAV.MSG default
+and the body with the default text (YOUVAL).  Are you sure (Y/N)? } T Restore default email confirmation
+
+EMLRSTD {<ESC>[1;32m
+The default validation email subject and body were restored.
+} T Default email restored
 
 LKUPPR {<ESC>[1;36m
 User-ID to look up (or <ESC>[1;37mX<ESC>[1;36m to go back): } T Sysop user lookup prompt
 
 USERINFO {<ESC>[1;36m
-Auto Validator record for <ESC>[1;37m<TV:HVS_USERID><ESC>[1;36m
+Auto Validator record for <ESC>[1;37m<TV:GALAV_USERID><ESC>[1;36m
 
-  Email address....... <ESC>[1;37m<TV:HVS_EMAIL><ESC>[1;36m
-  Validated........... <ESC>[1;37m<TV:HVS_VALID><ESC>[1;36m
-  Pending code........ <ESC>[1;37m<TV:HVS_CODE><ESC>[1;36m
-  Validation method... <ESC>[1;37m<TV:HVS_METHOD><ESC>[1;36m
-  Failed attempts..... <ESC>[1;37m<TV:HVS_ATTEMPTS><ESC>[1;36m
-  Override............ <ESC>[1;37m<TV:HVS_OVERRIDE><ESC>[1;36m
-  Validated users sharing this email: <ESC>[1;37m<TV:HVS_COUNT><ESC>[1;36m
+  Email address....... <ESC>[1;37m<TV:GALAV_EMAIL><ESC>[1;36m
+  Validated........... <ESC>[1;37m<TV:GALAV_VALID><ESC>[1;36m
+  Pending code........ <ESC>[1;37m<TV:GALAV_CODE><ESC>[1;36m
+  Validation method... <ESC>[1;37m<TV:GALAV_METHOD><ESC>[1;36m
+  Failed attempts..... <ESC>[1;37m<TV:GALAV_ATTEMPTS><ESC>[1;36m
+  Override............ <ESC>[1;37m<TV:GALAV_OVERRIDE><ESC>[1;36m
+  Validated users sharing this email: <ESC>[1;37m<TV:GALAV_COUNT><ESC>[1;36m
 } T Sysop view of a user's validation record
 
 AUTOQURY {<ESC>[1;36m
@@ -344,14 +411,14 @@ Contact the Sysop if you still wish to be validated.
 } T User has used up their validation attempts
 
 CNTEMAIL {<ESC>[1;31m
-Too many users are already validated with that <TV:HVS_EMAILTYP> email
+Too many users are already validated with that <TV:GALAV_EMAILTYP> email
 address.  You cannot be validated with it.  Contact your Sysop if you
 still wish to be validated.
 } T Email address already used by too many validated users
 
 EMALCONT {<ESC>[1;36m
 To validate your account, a validation code will be sent to your
-<TV:HVS_EMAILTYP> email address along with your User-ID.  When the email
+<TV:GALAV_EMAILTYP> email address along with your User-ID.  When the email
 arrives, return to the Auto Validator and enter the code.  You will
 then be a validated user of <TV:SYSTEM_NAME>.
 
@@ -371,10 +438,10 @@ That does not look like a valid email address.
 EMAILNO {<ESC>[1;31m
 Sorry, validation codes cannot be sent to that address.  Please use
 an address on another system.
-<ESC>[1;36mPlease enter your email address (<ESC>[1;37mX<ESC>[1;36m to abort): } T Email address refused by BADEMAIL or HVSAVBAD.TXT
+<ESC>[1;36mPlease enter your email address (<ESC>[1;37mX<ESC>[1;36m to abort): } T Email address refused by BADEMAIL or GALAVBAD.TXT
 
 MAILSENT {<ESC>[1;32m
-Your validation code has been sent to <ESC>[1;37m<TV:HVS_EMAIL><ESC>[1;32m.
+Your validation code has been sent to <ESC>[1;37m<TV:GALAV_EMAIL><ESC>[1;32m.
 When it arrives, return to the Auto Validator and enter the code.
 } T Validation email sent
 
@@ -384,7 +451,7 @@ contact the Sysop.
 } T Validation email could not be sent
 
 MAILQURY {<ESC>[1;36m
-A validation code was emailed to <ESC>[1;37m<TV:HVS_EMAIL><ESC>[1;36m.
+A validation code was emailed to <ESC>[1;37m<TV:GALAV_EMAIL><ESC>[1;36m.
 Please enter the code (<ESC>[1;37mX<ESC>[1;36m to exit): } T Ask for the emailed code
 
 MISTYPE {<ESC>[1;31m
@@ -405,15 +472,13 @@ You are now a validated member of <TV:SYSTEM_NAME>.  Have a nice day!
 } T Validation succeeded
 
 ADDCRDT {<ESC>[1;32m
-<TV:HVS_CREDITS> credits have been posted to your account.
+<TV:GALAV_CREDITS> credits have been posted to your account.
 } T Credits posted on validation
 
 VALIDERR {<ESC>[1;31m
 Your account could not be fully validated because of a setup problem.
 The Sysop has been notified.
 } T Method class missing at validation time
-
-EMLSUBJ {Your validation code} T Subject line of the validation email
 
 YOUVAL {
 Greetings!
@@ -425,80 +490,80 @@ Call <TV:SYSTEM_NAME> again, log on with your User-ID, and go to the Auto
 Validator.  It will ask for your validation code (below).  Enter it and
 you are all set.
 
-    Your User-ID is: <TV:HVS_USERID>
-    Your code is:    <TV:HVS_CODE>
+    Your User-ID is: <TV:GALAV_USERID>
+    Your code is:    <TV:GALAV_CODE>
 
 We hope you enjoy our system.  If you have any questions, please do not
 hesitate to ask!
-} T Body of the validation email (keep it plain text)
+} T Default body of the validation email (plain text)
 
 GLBLCMND {<ESC>[1;36m
   Auto Validator Global Commands:
 
-<ESC>[1;37m<TV:HVS_GLOB>V (method) (user)<ESC>[1;36m.. Validate a user with method 1-5.
-                       Example: <TV:HVS_GLOB>V 1 Some User
-<ESC>[1;37m<TV:HVS_GLOB>D (user)<ESC>[1;36m........... Devalidate: clear validation and attempts so
+<ESC>[1;37m<TV:GALAV_GLOB>V (method) (user)<ESC>[1;36m.. Validate a user with method 1-5.
+                       Example: <TV:GALAV_GLOB>V 1 Some User
+<ESC>[1;37m<TV:GALAV_GLOB>D (user)<ESC>[1;36m........... Devalidate: clear validation and attempts so
                        the user can validate again.
-<ESC>[1;37m<TV:HVS_GLOB>E (user)<ESC>[1;36m........... Email the user their code again.
-<ESC>[1;37m<TV:HVS_GLOB>L (user)<ESC>[1;36m........... Look up a user's validation record.
-<ESC>[1;37m<TV:HVS_GLOB>O (user)<ESC>[1;36m........... Toggle the override (ignores attempt and
+<ESC>[1;37m<TV:GALAV_GLOB>E (user)<ESC>[1;36m........... Email the user their code again.
+<ESC>[1;37m<TV:GALAV_GLOB>L (user)<ESC>[1;36m........... Look up a user's validation record.
+<ESC>[1;37m<TV:GALAV_GLOB>O (user)<ESC>[1;36m........... Toggle the override (ignores attempt and
                        email limits).
-<ESC>[1;37m<TV:HVS_GLOB>?<ESC>[1;36m.................. Show this list.
+<ESC>[1;37m<TV:GALAV_GLOB>?<ESC>[1;36m.................. Show this list.
 } T Sysop global command list
 
 BADGLOB {<ESC>[1;31m
-That is not a valid Auto Validator command.  Type <TV:HVS_GLOB>? for the list.
+That is not a valid Auto Validator command.  Type <TV:GALAV_GLOB>? for the list.
 } T Unknown or incomplete global command
 
 WRNGSNTX {<ESC>[1;31m
-The format is: <TV:HVS_GLOB>V (method 1-5) (user)
+The format is: <TV:GALAV_GLOB>V (method 1-5) (user)
 } T Bad format for the validate command
 
 DVALSNTX {<ESC>[1;31m
-The format is: <TV:HVS_GLOB>D (user)
+The format is: <TV:GALAV_GLOB>D (user)
 } T Bad format for the devalidate command
 
 EMALSNTX {<ESC>[1;31m
-The format is: <TV:HVS_GLOB>E (user)
+The format is: <TV:GALAV_GLOB>E (user)
 } T Bad format for the email command
 
 OVERSNTX {<ESC>[1;31m
-The format is: <TV:HVS_GLOB>O (user)
+The format is: <TV:GALAV_GLOB>O (user)
 } T Bad format for the override command
 
 LKUPSNTX {<ESC>[1;31m
-The format is: <TV:HVS_GLOB>L (user)
+The format is: <TV:GALAV_GLOB>L (user)
 } T Bad format for the look up command
 
 NOUSER {<ESC>[1;31m
-There is no user "<TV:HVS_USERID>" on this system.
+There is no user "<TV:GALAV_USERID>" on this system.
 } T User-ID not found
 
 NOAVREC {<ESC>[1;31m
-"<TV:HVS_USERID>" has never used the Auto Validator.
+"<TV:GALAV_USERID>" has never used the Auto Validator.
 } T User has no Auto Validator record
 
 NOEMAIL {<ESC>[1;31m
-<TV:HVS_USERID> has not given an email address.  Nothing was sent.
+<TV:GALAV_USERID> has not given an email address.  Nothing was sent.
 } T Resend email for a user with no address
 
 FORCE {<ESC>[1;32m
-<TV:HVS_USERID> has been validated with method <TV:HVS_METHOD>.
+<TV:GALAV_USERID> has been validated with method <TV:GALAV_METHOD>.
 } T Forced validation confirmation
 
 DEVAL {<ESC>[1;32m
-<TV:HVS_USERID> has been devalidated and may now validate again.
+<TV:GALAV_USERID> has been devalidated and may now validate again.
 } T Devalidate confirmation
 
 OVERRIDE {<ESC>[1;32m
-The override for <TV:HVS_USERID> is now <TV:HVS_OVERRIDE>.
+The override for <TV:GALAV_USERID> is now <TV:GALAV_OVERRIDE>.
 } T Override toggle confirmation
 
 RESENT {<ESC>[1;32m
-The validation code was emailed to <TV:HVS_USERID> at <TV:HVS_EMAIL>.
+The validation code was emailed to <TV:GALAV_USERID> at <TV:GALAV_EMAIL>.
 } T Code resent by the sysop
 
 FSENDBAD {<ESC>[1;31m
-The email to <TV:HVS_USERID> could not be sent.  Check your Internet
+The email to <TV:GALAV_USERID> could not be sent.  Check your Internet
 mail settings and the EMAILPFX setting.
 } T Sysop resend failed

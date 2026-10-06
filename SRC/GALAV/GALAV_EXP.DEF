@@ -1,0 +1,7 @@
+; Filename: GALAV_EXP.DEF
+LIBRARY GALAV.DLL
+; Auto Validator - Copyright (c) 2026 Elwynor Technologies
+; Export alias for the module entry point (Win32 / x86 build).
+; The BBS calls init__<modname>; the decorated cdecl symbol is _init__galav.
+EXPORTS
+	_init__galav=init__galav	@1

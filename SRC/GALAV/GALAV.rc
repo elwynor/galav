@@ -1,12 +1,12 @@
-/* Build 26.10.01.2 04:18PM */
-/* HVSAV.rc - Windows version resource for the Auto Validator module DLL.   */
-/* Keep the numbers in step with HVS_VER_* / HVS_VERSION in AVDEFS.H.        */
+/* Build 26.10.06.1 03:08PM */
+/* GALAV.rc - Windows version resource for the Auto Validator module DLL.   */
+/* Keep the numbers in step with GALAV_VER_* and GALAV_VERSION (AVDEFS.H). */
 
 #include <winver.h>
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,1,0,0
- PRODUCTVERSION 2,1,0,0
+ FILEVERSION 2,2,0,0
+ PRODUCTVERSION 2,2,0,0
  FILEFLAGSMASK 0x3fL
  FILEFLAGS 0x0L
  FILEOS VOS_NT_WINDOWS32
@@ -19,12 +19,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "Elwynor Technologies"
             VALUE "FileDescription",  "Auto Validator - email user validation for The Major BBS v10"
-            VALUE "FileVersion",      "2.1.0.0"
-            VALUE "InternalName",     "HVSAV"
+            VALUE "FileVersion",      "2.2.0.0"
+            VALUE "InternalName",     "GALAV"
             VALUE "LegalCopyright",   "Copyright (c) 2026 Elwynor Technologies. Originally (c) 1993-1996 High Velocity Software, Inc."
-            VALUE "OriginalFilename", "HVSAV.DLL"
+            VALUE "OriginalFilename", "GALAV.DLL"
             VALUE "ProductName",      "Auto Validator"
-            VALUE "ProductVersion",   "2.1.0"
+            VALUE "ProductVersion",   "2.2.0"
             VALUE "Comments",         "Converted for The Major BBS v10 by Mark Laudenbach - https://github.com/laudenbachm"
         END
     END

@@ -1,11 +1,11 @@
-/* Build 26.10.01.2 04:18PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
  *   AVSET.H                                Auto Validator - Live settings    *
  *                                                                           *
  *   Copyright (C) 2026 Elwynor Technologies.                                *
  *                                                                           *
- *   The settings the module runs on live in HVSAVSET.DAT, not in the CNF    *
- *   options.  On first start the CNF options (HVSAV.MSG) are copied in as   *
+ *   The settings the module runs on live in GALAVSET.DAT, not in the CNF    *
+ *   options.  On first start the CNF options (GALAV.MSG) are copied in as   *
  *   install defaults; after that the sysop changes settings online from     *
  *   the sysop menu and every change applies immediately.  Code reads the    *
  *   in-memory copy (avcfg) at the point of use - never a value cached at    *
@@ -19,18 +19,21 @@
 
 #include "AVDEFS.H"
 
-#define AVS_FILE     "HVSAVSET.DAT"
+#define AVS_FILE     "GALAVSET.DAT"
 #define AVS_RECID    "SETTINGS"      /* key of the one settings record       */
-/* 512 bytes: the settings use about 350.  The record must fit a 1024-byte */
+/* 512 bytes: the settings use about 465.  The record must fit a 1024-byte */
 /* Btrieve page together with Btrieve's own overhead - a 1024-byte record  */
 /* fails with status 28 (invalid record length).                            */
 #define AVS_RECLEN   512             /* fixed record length, room to grow    */
-#define AVS_LAYOUT   1               /* bump when the record layout changes  */
+#define AVS_LAYOUT   2               /* bump when the record layout changes  */
+                                     /*   2 (2.2.0): added fromadr, emlsubj  */
 
 #define AVS_TYPSIZ   21              /* EMAILTYP  (S 20)                     */
 #define AVS_PFXSIZ   6               /* EMAILPFX  (S 5)                      */
 #define AVS_BADSIZ   38              /* BADEMAIL  (S 37)                     */
 #define AVS_LOGSIZ   41              /* LOGFILE   (S 40)                     */
+#define AVS_FROMSIZ  61              /* FROMADDR  (S 60)                     */
+#define AVS_SUBSIZ   TPCSIZ          /* EMLSUBJ   (S 50)                     */
 
 /* Pin the packing so the stored record never depends on compiler options. */
 #pragma pack(push, 8)
@@ -54,7 +57,10 @@ struct avsetdat {                    /* the settings themselves              */
      CHAR emlpfx[AVS_PFXSIZ];        /*   EMAILPFX                           */
      CHAR bademail[AVS_BADSIZ];      /*   BADEMAIL                           */
      CHAR logfile[AVS_LOGSIZ];       /*   LOGFILE                            */
-     struct avmeth meth[HVS_NMETH];  /*   MTDnCLS / KEY / CRED / PAYM        */
+     struct avmeth meth[GALAV_NMETH]; /*  MTDnCLS / KEY / CRED / PAYM       */
+     /* Layout 2 - new fields go at the end, taken from the spare space.    */
+     CHAR fromadr[AVS_FROMSIZ];      /*   FROMADDR  "" = the gateway default */
+     CHAR emlsubj[AVS_SUBSIZ];       /*   EMLSUBJ                            */
 };
 
 struct avsetrec {                    /* the record as stored                 */
@@ -69,7 +75,9 @@ extern struct avsetdat avcfg;        /* live settings - read at point of use */
 
 VOID  set_open(VOID);                /* open file, load or seed settings     */
 VOID  set_close(VOID);
+VOID  set_save(VOID);                /* write avcfg to the settings file     */
 VOID  set_defaults(VOID);            /* reload from the CNF options and save */
+VOID  set_default1(INT msgnum);      /* reload one setting by its CNF option */
 
 /* ---- Online editor support (used by AVSYSOP.C) ----                       */
 

@@ -1,4 +1,4 @@
-/* Build 26.10.01.1 03:48PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
  *   AVSYSOP.C                       Auto Validator - Sysop menu & commands   *
  *                                                                           *
@@ -56,7 +56,7 @@ CHAR *canon)                         /*   receives the exact user-id         */
 }
 
 static VOID
-setglob(VOID)                        /* fill HVS_GLOB with the trigger char  */
+setglob(VOID)                        /* fill GALAV_GLOB with trigger char    */
 {
      CHAR g[2];
 
@@ -87,7 +87,7 @@ sy_userinfo(const CHAR *typed)       /* show a user's validation record      */
      }
      tv_set(TV_EMAIL, u.email[0] != '\0' ? u.email : "(none)");
      tv_set(TV_VALID, u.validated ? "Yes" : "No");
-     tv_set(TV_CODE, u.code == HVS_NOCODE ? "(none)"
+     tv_set(TV_CODE, u.code == GALAV_NOCODE ? "(none)"
                                           : spr("%04X", (USHORT)u.code));
      tv_setn(TV_METHOD, u.method);
      tv_setn(TV_ATTEMPTS, u.attempts);
@@ -106,6 +106,20 @@ showmenu(VOID)
      prfmsg(SYSMENU);
      prfmsg(SYSPRMPT);
      usrptr->substt = ST_SYSMENU;
+     return TRUE;
+}
+
+GBOOL
+sy_emlmenu(VOID)                     /* the validation email menu            */
+{
+     tv_set(TV_FROM, avcfg.fromadr[0] != '\0' ? avcfg.fromadr
+                                              : "Sysop at your SMTP host name");
+     tv_set(TV_SUBJECT, avcfg.emlsubj);
+     tv_set(TV_BODYSRC, ml_custom() ? "custom (GALAVEML.TXT)"
+                                    : "default (YOUVAL in GALAV.MSG)");
+     prfmsg(EMLMENU);
+     prfmsg(EMLPRMPT);
+     usrptr->substt = ST_EMLMENU;
      return TRUE;
 }
 
@@ -163,7 +177,7 @@ gotvalue(VOID)                       /* ST_SETVAL: the sysop typed a value   */
           tv_set(TV_LABEL, set_label(avv->item));
           tv_set(TV_VALUE, set_value(avv->item));
           prfmsg(SETSAVED);
-          shocst("HVSAV SETTING CHANGED", "%s: %s = %s", usaptr->userid,
+          shocst("GALAV SETTING CHANGED", "%s: %s = %s", usaptr->userid,
                  set_label(avv->item), set_value(avv->item));
           av_log("SETTING: %s changed \"%s\" from %s to %s", usaptr->userid,
                  set_label(avv->item), old, set_value(avv->item));
@@ -197,6 +211,8 @@ sy_input(VOID)                       /* one line of sysop menu input         */
           switch (choice()) {
           case 'S':
                return showsetmenu();
+          case 'E':
+               return sy_emlmenu();
           case 'L':
                prfmsg(LKUPPR);
                usrptr->substt = ST_LOOKUP;
@@ -219,7 +235,7 @@ sy_input(VOID)                       /* one line of sysop menu input         */
           if (n == 'G') {
                return showpage(SETPG_GENERAL);
           }
-          if (n >= '1' && n < '1' + HVS_NMETH) {
+          if (n >= '1' && n < '1' + GALAV_NMETH) {
                return showpage(n - '0');
           }
           if (n == 'R') {
@@ -250,12 +266,37 @@ sy_input(VOID)                       /* one line of sysop menu input         */
           if (choice() == 'Y') {
                set_defaults();
                prfmsg(SETRSTD);
-               shocst("HVSAV SETTINGS RESET",
-                      "%s reset settings to HVSAV.MSG defaults", usaptr->userid);
-               av_log("SETTING: %s reset all settings to the HVSAV.MSG defaults",
+               shocst("GALAV SETTINGS RESET",
+                      "%s reset settings to GALAV.MSG defaults", usaptr->userid);
+               av_log("SETTING: %s reset all settings to the GALAV.MSG defaults",
                       usaptr->userid);
           }
           return showsetmenu();
+
+     case ST_EMLMENU:
+          switch (choice()) {
+          case 'E':
+               ml_edit();            /* edone() in AVMAIL.C brings them back */
+               return TRUE;
+          case 'R':
+               prfmsg(EMLRSTQ);
+               usrptr->substt = ST_EMLRST;
+               return TRUE;
+          case 'X':
+               return showmenu();
+          }
+          return sy_emlmenu();
+
+     case ST_EMLRST:
+          if (choice() == 'Y') {
+               ml_restore();
+               prfmsg(EMLRSTD);
+               shocst("GALAV EMAIL RESET",
+                      "%s restored the default validation email", usaptr->userid);
+               av_log("SETTING: %s restored the default validation email",
+                      usaptr->userid);
+          }
+          return sy_emlmenu();
 
      case ST_LOOKUP:
           rstrin();
@@ -305,7 +346,7 @@ gcmd(CHAR cmd, CHAR *rest)           /* carry out one global command         */
 
      switch (cmd) {
      case 'V':                       /* @V n user - validate with method n   */
-          if (rest[0] < '1' || rest[0] >= '1' + HVS_NMETH
+          if (rest[0] < '1' || rest[0] >= '1' + GALAV_NMETH
            || !isspace((UCHAR)rest[1])) {
                prfmsg(WRNGSNTX);
                return;
@@ -320,7 +361,7 @@ gcmd(CHAR cmd, CHAR *rest)           /* carry out one global command         */
           }
           tv_setn(TV_METHOD, method);
           prfmsg(FORCE);
-          shocst("HVSAV FORCED VALIDATION", "%s validated %s (method %d)",
+          shocst("GALAV FORCED VALIDATION", "%s validated %s (method %d)",
                  usaptr->userid, uid, method);
           break;
 
@@ -334,7 +375,8 @@ gcmd(CHAR cmd, CHAR *rest)           /* carry out one global command         */
           }
           u.validated = 0;
           u.attempts = 0;
-          u.code = HVS_NOCODE;
+          u.badcodes = 0;
+          u.code = GALAV_NOCODE;
           avu_put(&u);
           prfmsg(DEVAL);
           av_log("SYSOP: %s devalidated %s", usaptr->userid, uid);

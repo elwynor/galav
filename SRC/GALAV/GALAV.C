@@ -1,6 +1,6 @@
-/* Build 26.10.01.3 05:02PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
- *   HVSAV.C   v2.1.0                    Auto Validator for The Major BBS v10 *
+ *   GALAV.C   v2.2.0                    Auto Validator for The Major BBS v10 *
  *                                                                           *
  *   Copyright (C) 2026 Elwynor Technologies.                                *
  *   Originally (C) Copyright 1993-1996 High Velocity Software, Inc.         *
@@ -12,19 +12,21 @@
  *   or the sysop side (AVSYSOP.C).                                          *
  *                                                                           *
  *   Source map:                                                             *
- *     HVSAV.C    this file - startup, shutdown, input routing               *
+ *     GALAV.C    this file - startup, shutdown, input routing               *
  *     AVVALID.C  the user's email validation dialog; applying a method      *
+ *     AVMAIL.C   the validation email: From, subject, body; online editor   *
  *     AVSYSOP.C  sysop menu, online settings editor, global commands        *
- *     AVSET.C    live settings (HVSAVSET.DAT) seeded from HVSAV.MSG         *
- *     AVUSER.C   per-user validation records (HVSAVUSR.DAT)                 *
- *     AVTVARS.C  named text variables used in HVSAV.MSG                     *
+ *     AVSET.C    live settings (GALAVSET.DAT) seeded from GALAV.MSG         *
+ *     AVUSER.C   per-user validation records (GALAVUSR.DAT)                 *
+ *     AVTVARS.C  named text variables used in GALAV.MSG                     *
  *     AVLOG.C    the activity log file                                      *
- *     HVSAV.H    message numbers for HVSAV.MSG                              *
+ *     GALAV.H    message numbers for GALAV.MSG                              *
  *                                                                           *
  *   Licensed under the GNU Affero General Public License v3.0 - see the     *
  *   LICENSE file in the project root.                                       *
  *****************************************************************************/
 
+#include <stdio.h>
 #include "gcomm.h"
 #include "majorbbs.h"
 #include "AVSET.H"
@@ -35,8 +37,8 @@ static GBOOL avinput(VOID);
 static VOID  avdelete(CHAR *userid);
 static VOID  avshutdown(VOID);
 
-static struct module hvsav = {       /* our entry in the BBS module table    */
-     "",                             /*   name (filled from HVSAV.MDF)       */
+static struct module galav = {       /* our entry in the BBS module table    */
+     "",                             /*   name (filled from GALAV.MDF)       */
      avlogon,                        /*   logon: optional offer to validate  */
      avinput,                        /*   a line of input while in module    */
      NULL,                           /*   status input (engine default)      */
@@ -48,26 +50,41 @@ static struct module hvsav = {       /* our entry in the BBS module table    */
      avshutdown                      /*   system shutdown                    */
 };
 
-HMCVFILE avmb;                       /* HVSAV.MCV, our message file          */
-static INT avstt;                    /* our module (state) number            */
+HMCVFILE avmb;                       /* GALAV.MCV, our message file          */
+INT avstt;                           /* our module (state) number            */
+
+static VOID
+migrate(                             /* take over a file from the HVSAV days */
+const CHAR *oldnam,                  /*   2.1.0 and earlier name             */
+const CHAR *newnam)                  /*   current name                       */
+{
+     /* Up to 2.1.0 the module's files were named HVSAV*.  Rename a board's */
+     /* existing ones once, so validation records and settings carry over.  */
+     if (!isfile(newnam) && isfile(oldnam) && rename(oldnam, newnam) == 0) {
+          shocst("GALAV FILE RENAMED", "%s renamed to %s", oldnam, newnam);
+     }
+}
 
 VOID EXPORT
-init__hvsav(VOID)                    /* called once by the BBS at startup    */
+init__galav(VOID)                    /* called once by the BBS at startup    */
 {
-     stzcpy(hvsav.descrp, gmdnam("HVSAV.MDF"), MNMSIZ);
-     avstt = register_module(&hvsav);
-     avmb = opnmsg("HVSAV.MCV");
+     stzcpy(galav.descrp, gmdnam("GALAV.MDF"), MNMSIZ);
+     avstt = register_module(&galav);
+     avmb = opnmsg("GALAV.MCV");
      dclvda(sizeof(struct avvda));   /* per-user scratch area we need        */
      tv_init();
+     migrate("HVSAVUSR.DAT", "GALAVUSR.DAT");
+     migrate("HVSAVSET.DAT", "GALAVSET.DAT");
+     migrate("HVSAVBAD.TXT", "GALAVBAD.TXT");
      set_open();                     /* settings: load, or seed from the MSG */
      avu_open();
      globalcmd(sy_global);
 
      /* Name the running build in the Audit Trail so a sysop can always    */
      /* tell which version is loaded.                                       */
-     shocst(spr("AUTO VALIDATOR v%s", HVS_VERSION),
+     shocst(spr("AUTO VALIDATOR v%s", GALAV_VERSION),
             "(C) Elwynor Technologies; orig. High Velocity Software");
-     av_log("STARTUP: Auto Validator v%s started", HVS_VERSION);
+     av_log("STARTUP: Auto Validator v%s started", GALAV_VERSION);
 }
 
 static GBOOL

@@ -16,9 +16,9 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{0AA8AB6C-3382-4FA8-AD54-43AA6D9EE30C}</ProjectGuid>
-    <RootNamespace>HVSAV</RootNamespace>
+    <RootNamespace>GALAV</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>HVSAV</ProjectName>
+    <ProjectName>GALAV</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -75,7 +75,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(MbbsSdkDir)lib\importlibs;$(MbbsSdkDir)lib\v10</AdditionalLibraryDirectories>
       <AdditionalDependencies>wgserver_lib.lib;galgsbl_lib.lib;galme_lib.lib</AdditionalDependencies>
-      <ModuleDefinitionFile>HVSAV_EXP.DEF</ModuleDefinitionFile>
+      <ModuleDefinitionFile>GALAV_EXP.DEF</ModuleDefinitionFile>
       <!-- Store only the PDB file name in the DLL, not a local build path. -->
       <AdditionalOptions>/PDBALTPATH:%_PDB% %(AdditionalOptions)</AdditionalOptions>
       <OptimizeReferences>false</OptimizeReferences>
@@ -101,7 +101,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(MbbsSdkDir)lib\importlibs;$(MbbsSdkDir)lib\v10</AdditionalLibraryDirectories>
       <AdditionalDependencies>wgserver_lib.lib;galgsbl_lib.lib;galme_lib.lib</AdditionalDependencies>
-      <ModuleDefinitionFile>HVSAV_EXP.DEF</ModuleDefinitionFile>
+      <ModuleDefinitionFile>GALAV_EXP.DEF</ModuleDefinitionFile>
       <!-- Store only the PDB file name in the DLL, not a local build path. -->
       <AdditionalOptions>/PDBALTPATH:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -110,25 +110,26 @@
     <ClInclude Include="AVDEFS.H" />
     <ClInclude Include="AVSET.H" />
     <ClInclude Include="AVUSER.H" />
-    <ClInclude Include="HVSAV.H" />
+    <ClInclude Include="GALAV.H" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HVSAV.C" />
+    <ClCompile Include="GALAV.C" />
     <ClCompile Include="AVVALID.C" />
     <ClCompile Include="AVSYSOP.C" />
     <ClCompile Include="AVSET.C" />
     <ClCompile Include="AVUSER.C" />
     <ClCompile Include="AVTVARS.C" />
     <ClCompile Include="AVLOG.C" />
+    <ClCompile Include="AVMAIL.C" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="HVSAV.rc" />
+    <ResourceCompile Include="GALAV.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="HVSAV.MST" />
-    <None Include="HVSAV.MSG" />
-    <None Include="HVSAV.MDF" />
-    <None Include="HVSAV_EXP.DEF" />
+    <None Include="GALAV.MST" />
+    <None Include="GALAV.MSG" />
+    <None Include="GALAV.MDF" />
+    <None Include="GALAV_EXP.DEF" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

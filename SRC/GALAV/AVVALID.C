@@ -1,4 +1,4 @@
-/* Build 26.10.01.1 03:48PM */
+/* Build 26.10.06.1 03:08PM */
 /*****************************************************************************
  *   AVVALID.C                         Auto Validator - Validating a user     *
  *                                                                           *
@@ -29,9 +29,9 @@
 #include "AVSET.H"
 #include "AVUSER.H"
 
-#define BADLIST   "HVSAVBAD.TXT"     /* optional list of refused addresses   */
-#define MAXTRIES  3                  /* wrong codes allowed per visit        */
-#define BODYSIZ   4000               /* largest validation email body        */
+#define BADLIST   "GALAVBAD.TXT"     /* optional list of refused addresses   */
+#define MAXTRIES  3                  /* wrong codes that make one failure    */
+#define MAILSIZ   (GALAV_BODYSIZ + 2048)  /* body, variables expanded     */
 
 /* ------------------------------------------------------------------------ *
  * Small helpers.                                                           *
@@ -73,20 +73,6 @@ codestr(SHORT code)                  /* a code as the user sees it ("1A2B")  */
 
      sprintf(buf, "%04X", (USHORT)code);
      return buf;
-}
-
-static VOID
-lfix(CHAR *s)                        /* message text EOLs -> GME '\r' EOLs   */
-{
-     CHAR *d = s;
-
-     for ( ; *s != '\0' ; s++) {
-          if (*s == '\r' && s[1] == '\n') {
-               continue;
-          }
-          *d++ = (*s == '\n') ? '\r' : *s;
-     }
-     *d = '\0';
 }
 
 static GBOOL
@@ -150,37 +136,23 @@ const CHAR *userid)                  /*   whose code (issues one if needed)  */
 {
      struct avuser u;
      static struct message msg;
-     static CHAR body[BODYSIZ];
+     static CHAR body[MAILSIZ];
 
      if (!avu_get(userid, &u) || u.email[0] == '\0') {
           return FALSE;
      }
-     if (u.code == HVS_NOCODE) {
+     if (u.code == GALAV_NOCODE) {
           u.code = newcode();
           u.method = avcfg.emlmeth;
           avu_put(&u);
      }
 
-     setmem(&msg, sizeof(msg), 0);
-     stlcpy(msg.from, "Sysop", MAXADR);
-     stlcpy(msg.to, avcfg.emlpfx, MAXADR);
-     stlcat(msg.to, u.email, MAXADR);
-     stlcpy(msg.topic, rawmsg(EMLSUBJ), TPCSIZ);
-     stpans(msg.topic);
-     strstp(msg.topic, '\r');
-     strstp(msg.topic, '\n');
-
-     /* Build the body from the YOUVAL text.  It never goes through prfmsg, */
-     /* so expand its text variables directly with xlttxv() and turn off    */
-     /* the '%' doubling those variables normally do (see AVTVARS.C).        */
+     /* From, subject and body come from the settings and the editable    */
+     /* body text (AVMAIL.C); these are the values they may refer to.     */
      tv_set(TV_USERID, u.userid);
      tv_set(TV_CODE, codestr(u.code));
-     stzcpy(body, rawmsg(YOUVAL), BODYSIZ);
-     tv_raw(TRUE);
-     xlttxv(body, BODYSIZ);
-     tv_raw(FALSE);
-     stpans(body);
-     lfix(body);
+     tv_set(TV_EMAIL, u.email);
+     ml_compose(&msg, body, sizeof(body), u.email);
 
      /* simpsnd() never waits: GMEAGAIN means GME queued the message and    */
      /* will finish sending it in the background.  Both count as success.   */
@@ -245,7 +217,7 @@ GBOOL forced)                        /*   TRUE: by a sysop (no user output)  */
           /* account.  Skip the switch and tell the sysop instead.          */
           if (fndcls(m->cls) == NULL) {
                ok = FALSE;
-               shocst("HVSAV CLASS MISSING",
+               shocst("GALAV CLASS MISSING",
                       "Method %d class %s not found; %s not switched",
                       method, m->cls, uid);
                av_log("ERROR: method %d class %s does not exist; %s kept "
@@ -264,6 +236,7 @@ GBOOL forced)                        /*   TRUE: by a sysop (no user output)  */
      avu_get(uid, &u);
      u.validated = 1;
      u.method = (SHORT)method;
+     u.badcodes = 0;
      avu_put(&u);
 
      if (!forced) {
@@ -292,7 +265,6 @@ GBOOL fromlogon)                     /*   TRUE: came from the logon offer    */
      struct avuser u;
 
      (VOID)fromlogon;
-     avv->tries = 0;
      if (!mayvalidate()) {
           prfmsg(ALRDYVLD);
           return FALSE;
@@ -309,7 +281,7 @@ GBOOL fromlogon)                     /*   TRUE: came from the logon offer    */
           av_log("SCREEN: %s has used all validation attempts", u.userid);
           return FALSE;
      }
-     if (u.code != HVS_NOCODE) {     /* code already sent: ask for it        */
+     if (u.code != GALAV_NOCODE) {   /* code already sent: ask for it        */
           tv_set(TV_EMAIL, u.email);
           prfmsg(MAILQURY);
           usrptr->substt = ST_CODE;
@@ -358,7 +330,8 @@ gotaddress(VOID)                     /* ST_EMLADDR: an address was typed     */
      }
 
      stzcpy(u.email, addr, AVU_EMLSIZ);
-     u.code = HVS_NOCODE;            /* av_sendcode() issues a fresh one     */
+     u.code = GALAV_NOCODE;          /* av_sendcode() issues a fresh one     */
+     u.badcodes = 0;
      avu_put(&u);
      tv_set(TV_EMAIL, u.email);
      if (av_sendcode(u.userid)) {
@@ -369,10 +342,10 @@ gotaddress(VOID)                     /* ST_EMLADDR: an address was typed     */
           /* Drop the code so their next visit offers email again rather    */
           /* than asking for a code that never arrived.                      */
           avu_get(u.userid, &u);
-          u.code = HVS_NOCODE;
+          u.code = GALAV_NOCODE;
           avu_put(&u);
           prfmsg(SENDFAIL);
-          shocst("HVSAV EMAIL FAILED", "Could not send code to %s", u.userid);
+          shocst("GALAV EMAIL FAILED", "Could not send code to %s", u.userid);
           av_log("FAILED: could not send code to %s at %s", u.userid, u.email);
      }
      return FALSE;
@@ -396,7 +369,7 @@ gotcode(VOID)                        /* ST_CODE: a code was typed            */
           prfmsg(ABORTCDE);
           return FALSE;
      }
-     if (u.code != HVS_NOCODE && sameas(margv[0], codestr(u.code))) {
+     if (u.code != GALAV_NOCODE && sameas(margv[0], codestr(u.code))) {
           /* Others may have validated with this address since the code was */
           /* sent, so check the shared-address limit again.                  */
           if (!u.override
@@ -409,16 +382,26 @@ gotcode(VOID)                        /* ST_CODE: a code was typed            */
           }
           /* Apply the method recorded when the code was issued; codes      */
           /* issued by 2.0 for postal mail carry their own method too.      */
-          method = (u.method >= 1 && u.method <= HVS_NMETH) ? u.method
+          method = (u.method >= 1 && u.method <= GALAV_NMETH) ? u.method
                                                             : avcfg.emlmeth;
           av_validate(u.userid, method, FALSE);
           return FALSE;
      }
-     if (++avv->tries < MAXTRIES) {
+     /* The wrong-code count is kept in the user's record, not just for     */
+     /* this visit: otherwise leaving after two wrong codes (X, or hanging   */
+     /* up) and coming back would allow unlimited guesses without a failure */
+     /* ever being counted.  Before 2.2.0 the field was spare space, so      */
+     /* treat anything out of range as zero.                                 */
+     if (u.badcodes < 0 || u.badcodes >= MAXTRIES) {
+          u.badcodes = 0;
+     }
+     if (++u.badcodes < MAXTRIES) {
+          avu_put(&u);
           prfmsg(MISTYPE);
           return TRUE;
      }
      prfmsg(SORRY);
+     u.badcodes = 0;
      u.attempts++;
      avu_put(&u);
      av_log("FAILED: %s entered the wrong code %d times (attempt %d)",

@@ -1,7 +1,0 @@
-; Filename: HVSAV_EXP.DEF
-LIBRARY HVSAV.DLL
-; Auto Validator - Copyright (c) 2026 Elwynor Technologies
-; Export alias for the module entry point (Win32 / x86 build).
-; The BBS calls init__<modname>; the decorated cdecl symbol is _init__hvsav.
-EXPORTS
-	_init__hvsav=init__hvsav	@1
