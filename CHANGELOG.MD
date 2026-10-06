@@ -3,6 +3,49 @@
 All notable changes to Auto Validator are documented here. Versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] - 2026-10-06
+
+### Added
+- The From address of the validation email is now a setting, for example
+  `validate@example.com` or `validate@bbs.example.com`. Left blank, the
+  email is sent as the Sysop, as before.
+- The subject and body of the validation email can be edited online. The
+  sysop menu's new Validation email option opens the BBS editor on them;
+  changes apply to the next email sent. The subject is also a setting, and
+  the edited body is kept in `GALAVEML.TXT`. A restore option returns both
+  to the defaults.
+- `[NAME]` in the subject or body stands for the text variable NAME, such as
+  `[GALAV_CODE]` or `[SYSTEM_NAME]`.
+
+### Changed
+- The module files are renamed from `HVSAV` to `GALAV`: `GALAV.DLL`,
+  `GALAV.MDF`, `GALAV.MSG`, and the data files `GALAVUSR.DAT`,
+  `GALAVSET.DAT` and `GALAVBAD.TXT`. Existing `HVSAV` data files are renamed
+  automatically on first start. Delete the old `HVSAV` module files when
+  upgrading.
+- The sysop manual is now `GALAV.RLN` (was `HVSAV.TXT`). The module
+  description's online user manual line points to it.
+- The configuration editor's level 3, 4 and 6 sections are titled "Auto
+  Validator" instead of showing the file name.
+- Text variables are renamed from `HVS_*` to `GALAV_*`.
+- The email subject moved from a text message (`EMLSUBJ`, level 6) to an
+  option (level 4), so it can be set like other settings.
+- Every three wrong codes now count as one failed validation even when they
+  are spread over several visits.
+- The activity log file, when changed online, must be a plain file name in
+  the BBS directory.
+
+### Security
+- A user could guess validation codes without limit: the wrong-code count
+  was kept only for the current visit, so leaving after two wrong codes (or
+  hanging up) and coming back reset it, and no failed attempt was ever
+  recorded. The count is now kept in the user record.
+- A holder of the sysop key could point the activity log at any file on the
+  server and append to it. Online changes now accept only a file name in the
+  BBS directory.
+- The From address read from the settings file is checked again before use,
+  so a damaged file cannot put line breaks into the mail header.
+
 ## [2.1.0] - 2026-10-01
 
 First release for The Major BBS v10. This is a rewrite on the native Major
