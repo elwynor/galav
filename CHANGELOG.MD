@@ -3,6 +3,21 @@
 All notable changes to Auto Validator are documented here. Versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.1] - 2026-10-07
+
+### Fixed
+- Settings changed online were reset to the configuration editor values at
+  every start. The saved settings record was never found at startup, so the
+  module created it again from `GALAV.MSG`. Settings now survive restarts
+  and the nightly clean-up.
+
+### Changed
+- The level 3 and level 4 configuration editor options are removed. Every
+  setting is changed online, from Settings in the Auto Validator sysop menu.
+  A new install starts from built-in defaults, the same values the options
+  had, and "Reset all settings" restores them. Upgrading from 2.2.0 keeps
+  the settings as they were at the last start.
+
 ## [2.2.0] - 2026-10-06
 
 ### Added

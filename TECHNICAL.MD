@@ -1,6 +1,6 @@
 # Auto Validator - Technical Notes
 
-How Auto Validator 2.2.0 works inside. For installing and configuring, see
+How Auto Validator 2.2.1 works inside. For installing and configuring, see
 `SRC/GALAV/GALAV.RLN` (the sysop manual) and [README.MD](README.MD).
 
 ## Architecture
@@ -16,7 +16,7 @@ where the user is in `usrptr->substt`, and returns.
 | `AVVALID.C` | User dialog (address → email → code), sending the code, applying a validation method |
 | `AVMAIL.C` | The validation email: From address, subject and body; `[NAME]` placeholders; the online subject/body editor |
 | `AVSYSOP.C` | Sysop menu, online settings editor, validation email menu, user look-up, global commands |
-| `AVSET.C` / `AVSET.H` | Live settings record, seeding from `GALAV.MSG`, and the settings table that drives the editor |
+| `AVSET.C` / `AVSET.H` | Live settings record, and the settings table (with each default) that drives the editor |
 | `AVUSER.C` / `AVUSER.H` | `GALAVUSR.DAT` access |
 | `AVTVARS.C` | Named text variables |
 | `AVLOG.C` | Activity log |
@@ -84,11 +84,21 @@ settings. A record must fit a 1024-byte Btrieve page with Btrieve's own
 overhead; a 1024-byte record fails with status 28. Its `layout` field allows
 later versions to convert the record. Layout 2 (2.2.0) added `fromadr` and
 `emlsubj` at the end of `struct avsetdat`, in what was spare space; a layout 1
-record is given their CNF defaults when it is loaded. The settings now use
+record is given their defaults when it is loaded. The settings now use
 about 465 of the 512 bytes.
-On first start the record is built from the CNF options (`set_defaults`).
-After that, the in-memory copy `avcfg` is the live configuration. It is read
-at the point of use and saved on every change.
+There are no CNF options for settings (2.2.1). On a new install the record
+is built from the defaults in the `gendefs` and `methdefs` tables in
+`AVSET.C` (`set_defaults`), which also back "Reset all settings". After
+that, the in-memory copy `avcfg` is the live configuration. It is read at
+the point of use and saved on every change.
+
+The record is looked up with its key copied into a local buffer, never the
+`AVS_RECID` string constant. `dfaAcqEQ` copies only as many key bytes as
+`goodblk()` allows, and `goodblk()` returns 0 for read-only memory (WG33
+`ISGOODPT.C`, `DFAAPI.C` `dfaAcqLock`), so a constant key searches for an
+empty key and fails. In 2.1.0 and 2.2.0 the startup lookup did exactly
+that, so every start rebuilt the settings from the CNF options and online
+changes were lost.
 
 ## Validation codes and email
 

@@ -8,7 +8,9 @@ new class, given a key, and/or posted credits, as the sysop configures.
 Auto Validator was originally written by High Velocity Software for Worldgroup.
 Version 2.1.0 was a rewrite for The Major BBS v10 by Elwynor Technologies.
 Version 2.2.0 renames the module files from `HVSAV` to `GALAV` and makes the
-validation email's From address, subject and body editable online.
+validation email's From address, subject and body editable online. Version
+2.2.1 fixes settings changed online being lost at every restart, and moves
+every setting out of the configuration editor.
 
 ## Features
 
@@ -65,9 +67,10 @@ limits, the logon offer, the global command trigger, email wording and
 routing, the email's From address and subject, and the log file. Each of methods 1-5 has a class, a key, a credit
 amount and a credit type.
 
-The level 3 and 4 options in the configuration editor are **install
-defaults** only. They are copied into the settings file the first time the
-module starts. See `GALAV.RLN` (the sysop manual) for every setting.
+Settings are changed **online only**; there are no configuration editor
+options. A new install starts from built-in defaults, and **Reset all
+settings** in the settings menu restores them. See `GALAV.RLN` (the sysop
+manual) for every setting.
 
 ## Usage
 
@@ -80,7 +83,7 @@ module starts. See `GALAV.RLN` (the sysop manual) for every setting.
 
 ## Version Information
 
-Current version: **2.2.0**. See [CHANGELOG.MD](CHANGELOG.MD) for changes and
+Current version: **2.2.1**. See [CHANGELOG.MD](CHANGELOG.MD) for changes and
 [BUILDING.MD](BUILDING.MD) to build from source.
 
 ## License

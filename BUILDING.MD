@@ -22,7 +22,7 @@ SDK folder (trailing backslash required). `MBBSSDK.props` is not committed.
 
 ## Message file
 
-The module's text and configuration options are in `SRC/GALAV/GALAV.MSG`,
+The module's text is in `SRC/GALAV/GALAV.MSG`,
 and `SRC/GALAV/GALAV.H` holds the matching message numbers. `GALAV.MSG`
 contains raw ESC and 0x01 bytes (ANSI color and named text variables) and
 must keep CRLF line endings, so edit it with an editor that preserves
