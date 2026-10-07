@@ -1,4 +1,4 @@
-/* Build 26.10.06.1 03:08PM */
+/* Build 26.10.07.1 03:36PM */
 /*****************************************************************************
  *   AVSYSOP.C                       Auto Validator - Sysop menu & commands   *
  *                                                                           *
@@ -267,8 +267,8 @@ sy_input(VOID)                       /* one line of sysop menu input         */
                set_defaults();
                prfmsg(SETRSTD);
                shocst("GALAV SETTINGS RESET",
-                      "%s reset settings to GALAV.MSG defaults", usaptr->userid);
-               av_log("SETTING: %s reset all settings to the GALAV.MSG defaults",
+                      "%s reset settings to the defaults", usaptr->userid);
+               av_log("SETTING: %s reset all settings to the defaults",
                       usaptr->userid);
           }
           return showsetmenu();

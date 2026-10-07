@@ -1,4 +1,4 @@
-/* Build 26.10.06.1 03:08PM */
+/* Build 26.10.07.1 03:36PM */
 /*****************************************************************************
  *   AVMAIL.C                           Auto Validator - The validation email *
  *                                                                           *
@@ -166,7 +166,7 @@ INT size,                            /*   size of body                       */
 const CHAR *to)                      /*   the user's address                 */
 {
      static CHAR raw[GALAV_BODYSIZ];
-     CHAR subj[512], *dft = NULL;  /* room for variables to expand       */
+     CHAR subj[512];               /* room for variables to expand       */
 
      setmem(msg, sizeof(*msg), 0);
      if (avcfg.fromadr[0] != '\0') {
@@ -179,13 +179,9 @@ const CHAR *to)                      /*   the user's address                 */
      stlcpy(msg->to, avcfg.emlpfx, MAXADR);
      stlcat(msg->to, to, MAXADR);
 
-     if (avcfg.emlsubj[0] == '\0') { /* never send a mail with no subject    */
-          dft = stgopt(EMLSUBJ);
-     }
-     expand(dft != NULL ? dft : avcfg.emlsubj, subj, sizeof(subj));
-     if (dft != NULL) {
-          free(dft);
-     }
+     /* Never send a mail with no subject.                                  */
+     expand(avcfg.emlsubj[0] != '\0' ? avcfg.emlsubj : AVS_DEFSUBJ,
+            subj, sizeof(subj));
      strstp(subj, '\r');
      strstp(subj, '\n');
      stzcpy(msg->topic, subj, TPCSIZ);
@@ -292,5 +288,5 @@ VOID
 ml_restore(VOID)                     /* default subject and body again       */
 {
      unlink(BODYFILE);
-     set_default1(EMLSUBJ);
+     set_default1(AVS_OFS(emlsubj));
 }

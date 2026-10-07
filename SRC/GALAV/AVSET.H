@@ -1,15 +1,20 @@
-/* Build 26.10.06.1 03:08PM */
+/* Build 26.10.07.1 03:36PM */
 /*****************************************************************************
  *   AVSET.H                                Auto Validator - Live settings    *
  *                                                                           *
  *   Copyright (C) 2026 Elwynor Technologies.                                *
  *                                                                           *
- *   The settings the module runs on live in GALAVSET.DAT, not in the CNF    *
- *   options.  On first start the CNF options (GALAV.MSG) are copied in as   *
- *   install defaults; after that the sysop changes settings online from     *
- *   the sysop menu and every change applies immediately.  Code reads the    *
- *   in-memory copy (avcfg) at the point of use - never a value cached at    *
- *   startup.                                                                *
+ *   The settings the module runs on live in GALAVSET.DAT.  There are no     *
+ *   CNF options: a new install starts from the defaults in AVSET.C, and     *
+ *   the sysop changes settings online from the sysop menu; every change     *
+ *   applies immediately.  Code reads the in-memory copy (avcfg) at the      *
+ *   point of use - never a value cached at startup.                         *
+ *                                                                           *
+ *   Adding a setting: a field at the END of struct avsetdat (taken from     *
+ *   the spare space) and a row, with its default, in gendefs or methdefs    *
+ *   in AVSET.C.  An existing record reads the new field as zero, so bump    *
+ *   AVS_LAYOUT and default the field in set_open() if zero is not a good    *
+ *   value.                                                                  *
  *                                                                           *
  *   Licensed under the GNU Affero General Public License v3.0.              *
  *****************************************************************************/
@@ -17,6 +22,7 @@
 #ifndef AVSET_H
 #define AVSET_H
 
+#include <stddef.h>
 #include "AVDEFS.H"
 
 #define AVS_FILE     "GALAVSET.DAT"
@@ -34,6 +40,8 @@
 #define AVS_LOGSIZ   41              /* LOGFILE   (S 40)                     */
 #define AVS_FROMSIZ  61              /* FROMADDR  (S 60)                     */
 #define AVS_SUBSIZ   TPCSIZ          /* EMLSUBJ   (S 50)                     */
+
+#define AVS_DEFSUBJ  "Your validation code"  /* default email subject       */
 
 /* Pin the packing so the stored record never depends on compiler options. */
 #pragma pack(push, 8)
@@ -76,8 +84,10 @@ extern struct avsetdat avcfg;        /* live settings - read at point of use */
 VOID  set_open(VOID);                /* open file, load or seed settings     */
 VOID  set_close(VOID);
 VOID  set_save(VOID);                /* write avcfg to the settings file     */
-VOID  set_defaults(VOID);            /* reload from the CNF options and save */
-VOID  set_default1(INT msgnum);      /* reload one setting by its CNF option */
+VOID  set_defaults(VOID);            /* every setting to its default, saved  */
+VOID  set_default1(size_t offset);   /* one setting, by AVS_OFS(field)       */
+
+#define AVS_OFS(f) offsetof(struct avsetdat, f)
 
 /* ---- Online editor support (used by AVSYSOP.C) ----                       */
 

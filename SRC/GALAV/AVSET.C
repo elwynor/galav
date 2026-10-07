@@ -1,4 +1,4 @@
-/* Build 26.10.06.1 03:08PM */
+/* Build 26.10.07.1 03:36PM */
 /*****************************************************************************
  *   AVSET.C                                Auto Validator - Live settings    *
  *                                                                           *
@@ -6,8 +6,8 @@
  *                                                                           *
  *   Loads, seeds and saves the settings record (GALAVSET.DAT), and          *
  *   describes each setting - its label, its allowed values, where it lives  *
- *   in the record, and which CNF option supplies its install default - so   *
- *   the sysop editor in AVSYSOP.C can list and change them generically.     *
+ *   in the record and its default - so the sysop editor in AVSYSOP.C can    *
+ *   list and change them generically.                                       *
  *                                                                           *
  *   Licensed under the GNU Affero General Public License v3.0.              *
  *****************************************************************************/
@@ -29,56 +29,60 @@ enum { T_KEY, T_CLS, T_STR, T_NUM, T_LNG, T_BOOL, T_CHR, T_PAY, T_ADR, T_FIL };
 
 struct setdef {
      INT type;                       /* T_xxx                                */
-     INT msgnum;                     /* CNF option holding the default       */
      size_t offset;                  /* where it lives in struct avsetdat    */
      INT size;                       /* string buffer size (incl. NUL)       */
      LONG min, max;                  /* numeric range                        */
+     LONG defnum;                    /* default: numbers, YES=1, PAID=1      */
+     const CHAR *defstr;             /* default: text settings and T_CHR     */
      const CHAR *label;              /* what the sysop sees                  */
 };
 
-#define OFS(f) offsetof(struct avsetdat, f)
+/* The defaults live here, not in GALAV.MSG: settings are changed only     */
+/* online, so there is one place to change them.  They are used on a new   */
+/* install and by "Reset all settings" in the sysop menu.                  */
+#define NUM(t, f, lo, hi, def, lbl) { t, AVS_OFS(f), 0, lo, hi, def, NULL, lbl }
+#define STR(t, f, sz, def, lbl)     { t, AVS_OFS(f), sz, 0, 0, 0, def, lbl }
 
 /* Page 0: general settings, in the order the sysop sees them.              */
 static const struct setdef gendefs[] = {
-     { T_KEY,  VALIDKEY, OFS(vldkey),   KEYSIZ,     0,   0, "Key needed to request validation" },
-     { T_KEY,  CNFGACES, OFS(cfgkey),   KEYSIZ,     0,   0, "Key for sysop menu and commands" },
-     { T_NUM,  EMAILMTD, OFS(emlmeth),  0,          1,   GALAV_NMETH, "Method used for email validations" },
-     { T_NUM,  MAXEMAIL, OFS(maxemail), 0,          1, 100, "Max validated users per email" },
-     { T_NUM,  MAXATMPT, OFS(maxatmpt), 0,          0, 100, "Failed validations allowed (0=any)" },
-     { T_BOOL, AVATLOGN, OFS(asklogon), 0,          0,   0, "Offer validation at logon" },
-     { T_CHR,  AVGLOB,   OFS(globchr),  0,          0,   0, "Global command trigger" },
-     { T_STR,  EMAILTYP, OFS(emltype),  AVS_TYPSIZ, 0,   0, "Email type shown to users" },
-     { T_STR,  EMAILPFX, OFS(emlpfx),   AVS_PFXSIZ, 0,   0, "Internet email address prefix" },
-     { T_ADR,  FROMADDR, OFS(fromadr),  AVS_FROMSIZ,0,   0, "Validation email sent from" },
-     { T_STR,  EMLSUBJ,  OFS(emlsubj),  AVS_SUBSIZ, 0,   0, "Validation email subject" },
-     { T_STR,  BADEMAIL, OFS(bademail), AVS_BADSIZ, 0,   0, "Email domain refused" },
-     { T_FIL,  LOGFILE,  OFS(logfile),  AVS_LOGSIZ, 0,   0, "Activity log file (blank=off)" },
+     STR(T_KEY,  vldkey,   KEYSIZ,      "",          "Key needed to request validation"),
+     STR(T_KEY,  cfgkey,   KEYSIZ,      "SYSOP",     "Key for sysop menu and commands"),
+     NUM(T_NUM,  emlmeth,  1, GALAV_NMETH, 1,        "Method used for email validations"),
+     NUM(T_NUM,  maxemail, 1, 100, 1,                "Max validated users per email"),
+     NUM(T_NUM,  maxatmpt, 0, 100, 3,                "Failed validations allowed (0=any)"),
+     NUM(T_BOOL, asklogon, 0, 0, 0,                  "Offer validation at logon"),
+     STR(T_CHR,  globchr,  0,           "@",         "Global command trigger"),
+     STR(T_STR,  emltype,  AVS_TYPSIZ,  "Internet",  "Email type shown to users"),
+     STR(T_STR,  emlpfx,   AVS_PFXSIZ,  "IN:",       "Internet email address prefix"),
+     STR(T_ADR,  fromadr,  AVS_FROMSIZ, "",          "Validation email sent from"),
+     STR(T_STR,  emlsubj,  AVS_SUBSIZ,  AVS_DEFSUBJ, "Validation email subject"),
+     STR(T_STR,  bademail, AVS_BADSIZ,  "",          "Email domain refused"),
+     STR(T_FIL,  logfile,  AVS_LOGSIZ,  "GALAV.LOG", "Activity log file (blank=off)"),
 };
 #define NGEN (sizeof(gendefs) / sizeof(gendefs[0]))
 
 /* Pages 1-5: the same four settings for each validation method.  Offsets   */
 /* here are within struct avmeth; method n's copy is found at run time.     */
+/* Every method has the same defaults: no class, no key, no credits, FREE.  */
 #define MOFS(f) offsetof(struct avmeth, f)
 static const struct setdef methdefs[] = {
-     { T_CLS, MTD1CLS,  MOFS(cls),   KEYSIZ, 0, 0,        "Class to switch to" },
-     { T_KEY, MTD1KEY,  MOFS(key),   KEYSIZ, 0, 0,        "Key to give" },
-     { T_LNG, MTD1CRED, MOFS(creds), 0,      0, 1000000L, "Credits to post" },
-     { T_PAY, MTD1PAYM, MOFS(paid),  0,      0, 0,        "Credit type" },
+     { T_CLS, MOFS(cls),   KEYSIZ, 0, 0,        0, "", "Class to switch to" },
+     { T_KEY, MOFS(key),   KEYSIZ, 0, 0,        0, "", "Key to give" },
+     { T_LNG, MOFS(creds), 0,      0, 1000000L, 0, NULL, "Credits to post" },
+     { T_PAY, MOFS(paid),  0,      0, 0,        0, NULL, "Credit type" },
 };
 #define NMDEF (sizeof(methdefs) / sizeof(methdefs[0]))
 #define NSET  (NGEN + GALAV_NMETH * NMDEF)
 
-/* Look up setting idx (0..NSET-1): its definition, its storage, and the    */
-/* CNF option it defaults from.                                             */
+/* Look up setting idx (0..NSET-1): its definition and its storage.         */
 static const struct setdef *
-setdef(INT idx, VOID **where, INT *msgnum)
+setdef(INT idx, VOID **where)
 {
      const struct setdef *d;
 
      if (idx < (INT)NGEN) {
           d = &gendefs[idx];
           *where = (CHAR *)&avcfg + d->offset;
-          *msgnum = d->msgnum;
      }
      else {
           INT m = (idx - (INT)NGEN) / (INT)NMDEF;   /* method 0-4            */
@@ -86,8 +90,6 @@ setdef(INT idx, VOID **where, INT *msgnum)
 
           d = &methdefs[f];
           *where = (CHAR *)&avcfg.meth[m] + d->offset;
-          /* MTDnCLS, KEY, CRED, PAYM are consecutive in GALAV.MSG.         */
-          *msgnum = d->msgnum + m * (INT)NMDEF;
      }
      return d;
 }
@@ -101,6 +103,8 @@ set_save(VOID)                       /* write avcfg to GALAVSET.DAT          */
 {
      struct avsetrec rec;
 
+     /* rec.recid is the lookup key: it must be writable memory (see      */
+     /* set_open).                                                         */
      setmem(&rec, sizeof(rec), 0);
      stzcpy(rec.recid, AVS_RECID, sizeof(rec.recid));
      avcfg.layout = AVS_LAYOUT;
@@ -154,11 +158,11 @@ plainname(const CHAR *s)             /* a file name with no drive or folder? */
 static VOID
 set_sanity(VOID)                     /* keep loaded values inside limits     */
 {
-     INT i, msgnum;
+     INT i;
      VOID *where;
 
      for (i = 0 ; i < (INT)NSET ; i++) {
-          const struct setdef *d = setdef(i, &where, &msgnum);
+          const struct setdef *d = setdef(i, &where);
 
           switch (d->type) {
           case T_NUM:
@@ -195,65 +199,53 @@ set_sanity(VOID)                     /* keep loaded values inside limits     */
 }
 
 static VOID
-loadone(INT idx)                     /* copy one CNF option into avcfg       */
-{                                    /*   (caller selects avmb with setmbk)  */
-     INT msgnum;
+loadone(INT idx)                     /* copy one default into avcfg          */
+{
      VOID *where;
-     CHAR *s;
-     const struct setdef *d = setdef(idx, &where, &msgnum);
+     const struct setdef *d = setdef(idx, &where);
 
      switch (d->type) {
      case T_NUM:
-          *(SHORT *)where = (SHORT)numopt(msgnum, (INT)d->min, (INT)d->max);
+     case T_BOOL:
+     case T_PAY:
+          *(SHORT *)where = (SHORT)d->defnum;
           break;
      case T_LNG:
-          *(LONG *)where = lngopt(msgnum, d->min, d->max);
-          break;
-     case T_BOOL:
-          *(SHORT *)where = (SHORT)(ynopt(msgnum) != 0);
+          *(LONG *)where = d->defnum;
           break;
      case T_CHR:
-          *(CHAR *)where = (CHAR)chropt(msgnum);
-          break;
-     case T_PAY:
-          *(SHORT *)where = (SHORT)(tokopt(msgnum, "FREE", "PAID", NULL) == 2);
+          *(CHAR *)where = d->defstr[0];
           break;
      default:                        /* T_KEY, T_CLS, T_STR, T_ADR, T_FIL    */
-          s = stgopt(msgnum);
-          stzcpy((CHAR *)where, s, d->size);
-          free(s);
+          stzcpy((CHAR *)where, d->defstr, d->size);
           break;
      }
 }
 
 VOID
-set_defaults(VOID)                   /* copy the CNF options in, and save    */
+set_defaults(VOID)                   /* every setting to its default, saved  */
 {
      INT i;
 
-     setmbk(avmb);
      setmem(&avcfg, sizeof(avcfg), 0);
      for (i = 0 ; i < (INT)NSET ; i++) {
           loadone(i);
      }
-     rstmbk();
      set_sanity();
      set_save();
 }
 
 VOID
-set_default1(                        /* reload one setting from its option   */
-INT msgnum)                          /*   its CNF option (general page only) */
+set_default1(                        /* one setting to its default, saved    */
+size_t offset)                       /*   AVS_OFS(field) (general page only) */
 {
      INT i;
 
-     setmbk(avmb);
      for (i = 0 ; i < (INT)NGEN ; i++) {
-          if (gendefs[i].msgnum == msgnum) {
+          if (gendefs[i].offset == offset) {
                loadone(i);
           }
      }
-     rstmbk();
      set_sanity();
      set_save();
 }
@@ -280,22 +272,29 @@ set_open(VOID)                       /* open file; load settings or seed them*/
      }
      avsdat = dfaOpen(AVS_FILE, sizeof(struct avsetrec), NULL);
 
+     /* The key must be in writable memory.  dfaAcqEQ copies only as many   */
+     /* key bytes as goodblk() allows, and goodblk() returns 0 for          */
+     /* read-only memory (WG33 ISGOODPT.C qryBlockSize, DFAAPI.C           */
+     /* dfaAcqLock).  A string constant is read-only, so passing AVS_RECID  */
+     /* searched for an empty key and reseeded the settings every start     */
+     /* (2.1.0 and 2.2.0).                                                  */
      setmem(&rec, sizeof(rec), 0);
+     stzcpy(rec.recid, AVS_RECID, sizeof(rec.recid));
      dfaSetBlk(avsdat);
-     if (dfaAcqEQ(&rec, AVS_RECID, 0)) {
+     if (dfaAcqEQ(&rec, rec.recid, 0)) {
           dfaRstBlk();
           avcfg = rec.d;
           set_sanity();
           if (avcfg.layout < 2) {    /* a 2.1.0 record: seed the new fields  */
-               set_default1(FROMADDR);
-               set_default1(EMLSUBJ);
+               set_default1(AVS_OFS(fromadr));
+               set_default1(AVS_OFS(emlsubj));
           }
           return;
      }
      dfaRstBlk();
-     set_defaults();                 /* first start: seed from GALAV.MSG     */
+     set_defaults();                 /* a new install: the defaults          */
      shocst("GALAV SETTINGS CREATED",
-            "Auto Validator settings seeded from GALAV.MSG defaults");
+            "New settings file, default values");
 }
 
 VOID
@@ -342,9 +341,8 @@ const CHAR *
 set_label(INT idx)
 {
      VOID *where;
-     INT msgnum;
 
-     return setdef(idx, &where, &msgnum)->label;
+     return setdef(idx, &where)->label;
 }
 
 const CHAR *
@@ -352,8 +350,7 @@ set_value(INT idx)                   /* current value, ready for display     */
 {
      static CHAR buf[64];
      VOID *where;
-     INT msgnum;
-     const struct setdef *d = setdef(idx, &where, &msgnum);
+     const struct setdef *d = setdef(idx, &where);
 
      switch (d->type) {
      case T_NUM:
@@ -388,8 +385,7 @@ set_limit(INT idx)                   /* describe the allowed values          */
 {
      static CHAR buf[80];
      VOID *where;
-     INT msgnum;
-     const struct setdef *d = setdef(idx, &where, &msgnum);
+     const struct setdef *d = setdef(idx, &where);
 
      switch (d->type) {
      case T_NUM:
@@ -443,10 +439,9 @@ INT idx,                             /*   setting (table index)              */
 const CHAR *text)                    /*   what was typed, already trimmed    */
 {
      VOID *where;
-     INT msgnum;
      LONG n;
      CHAR *end;
-     const struct setdef *d = setdef(idx, &where, &msgnum);
+     const struct setdef *d = setdef(idx, &where);
      GBOOL clear = sameas(text, "-");
 
      if (text[0] == '\0') {

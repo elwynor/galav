@@ -1,6 +1,6 @@
-/* Build 26.10.06.1 03:08PM */
+/* Build 26.10.07.1 03:36PM */
 /*****************************************************************************
- *   GALAV.C   v2.2.0                    Auto Validator for The Major BBS v10 *
+ *   GALAV.C   v2.2.1                    Auto Validator for The Major BBS v10 *
  *                                                                           *
  *   Copyright (C) 2026 Elwynor Technologies.                                *
  *   Originally (C) Copyright 1993-1996 High Velocity Software, Inc.         *
@@ -16,7 +16,7 @@
  *     AVVALID.C  the user's email validation dialog; applying a method      *
  *     AVMAIL.C   the validation email: From, subject, body; online editor   *
  *     AVSYSOP.C  sysop menu, online settings editor, global commands        *
- *     AVSET.C    live settings (GALAVSET.DAT) seeded from GALAV.MSG         *
+ *     AVSET.C    live settings (GALAVSET.DAT) and their defaults           *
  *     AVUSER.C   per-user validation records (GALAVUSR.DAT)                 *
  *     AVTVARS.C  named text variables used in GALAV.MSG                     *
  *     AVLOG.C    the activity log file                                      *

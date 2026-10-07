@@ -1,5 +1,5 @@
 
-                          AUTO VALIDATOR  v2.2.0
+                          AUTO VALIDATOR  v2.2.1
                      for The Major BBS v10 (32-bit)
 
      Copyright (c) 2026 Elwynor Technologies.
@@ -60,15 +60,22 @@ From 2.0 only: HVSAVCFG.DAT and HVSAVNVR.DAT (phone settings and the
 "never call" list) are no longer used and can be deleted.  The
 activation code is gone; no registration is needed.
 
+UPGRADING FROM 2.2.0: copy in the new GALAV.DLL, GALAV.MDF, GALAV.MSG
+and GALAV.RLN.  In 2.1.0 and 2.2.0, settings changed online were
+replaced with the configuration editor values at every start.  2.2.1
+keeps the settings as they were when the BBS last started, and keeps
+them from then on - check them once in the sysop menu after upgrading.
+The configuration editor no longer shows Auto Validator options.
+
 
 3. SETTING IT UP
 ----------------
 
 Settings are changed ONLINE, from the Auto Validator sysop menu, and take
-effect immediately - no restart.  The options in the configuration editor
-(GALAV.MSG, levels 3 and 4) are only the install defaults: they are copied
-into GALAVSET.DAT the first time the module starts.  To copy them in
-again later, use "Reset all settings" in the sysop menu.
+effect immediately - no restart.  They are kept in GALAVSET.DAT and
+survive restarts.  There are no configuration editor options for them: a
+new install starts from the defaults shown below, and "Reset all
+settings" in the settings menu restores them.
 
 Enter Auto Validator with the sysop key (SYSOP by default) to get the
 sysop menu:
@@ -85,24 +92,29 @@ GENERAL SETTINGS
 
   Key needed to request validation   Only users with this key may use
                                      Auto Validator.  Blank = anyone.
+                                     Default blank.
   Key for sysop menu and commands    Users with this key get the sysop
                                      menu and commands, and are never
                                      validated themselves.  Blank = SYSOP.
+                                     Default SYSOP.
   Method used for email validations  Which method (1-5) a user gets when
                                      they enter a correct code.
+                                     Default 1.
   Max validated users per email      How many validated users may share
-                                     one email address.
+                                     one email address.  Default 1.
   Failed validations allowed         Every three wrong codes count as
                                      one failure, even across visits.
                                      After this many failures the user
                                      must be reset by a sysop.  0 = no
                                      limit (not recommended).
+                                     Default 3.
   Offer validation at logon          YES: unvalidated users are asked at
                                      logon whether to validate now.
+                                     Default NO.
   Global command trigger             First character of the sysop
                                      commands (default @).
   Email type shown to users          How email is described to users,
-                                     e.g. "Internet".
+                                     e.g. "Internet" (the default).
   Internet email address prefix      Put in front of the user's address
                                      to route the message out through
                                      your Internet mail gateway
@@ -112,11 +124,14 @@ GENERAL SETTINGS
                                      email, e.g. validate@example.com or
                                      validate@bbs.example.com.  Blank =
                                      the Sysop, which the gateway sends
-                                     as sysop@ its host name.
+                                     as sysop@ its host name.  Default
+                                     blank.
   Validation email subject           The subject line.  [NAME] stands
                                      for a text variable (section 4).
+                                     Default "Your validation code".
   Email domain refused               A domain users may not validate
                                      with - usually your own BBS's.
+                                     Default blank.
   Activity log file                  Text log of every validation,
                                      failure and sysop action.  Blank =
                                      no log.  Default GALAV.LOG.  Online,
@@ -135,6 +150,8 @@ Each method has four settings:
   Key to give           A key added to the user.  Blank = none.
   Credits to post       Credits added to the account.  0 = none.
   Credit type           FREE or PAID, for your accounting.
+
+By default every method has no class, no key, 0 credits and FREE.
 
 REFUSING ADDRESSES
 
@@ -230,8 +247,7 @@ here with the default trigger, @.
 
   GALAV.DLL      the module
   GALAV.MDF      module description
-  GALAV.MSG      text and install-default options (the BBS builds
-                 GALAV.MCV from it)
+  GALAV.MSG      text (the BBS builds GALAV.MCV from it)
   GALAV.RLN      this manual
   GALAVUSR.DAT   user validation records (created automatically)
   GALAVSET.DAT   settings (created automatically)

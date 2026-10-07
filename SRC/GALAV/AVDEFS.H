@@ -1,4 +1,4 @@
-/* Build 26.10.06.1 03:08PM */
+/* Build 26.10.07.1 03:36PM */
 /*****************************************************************************
  *   AVDEFS.H                                Auto Validator - Shared defines  *
  *                                                                           *
@@ -27,8 +27,8 @@
  * ------------------------------------------------------------------------ */
 #define GALAV_VER_MAJOR 2
 #define GALAV_VER_MINOR 2
-#define GALAV_VER_PATCH 0
-#define GALAV_VERSION   "2.2.0"
+#define GALAV_VER_PATCH 1
+#define GALAV_VERSION   "2.2.1"
 
 #define GALAV_NMETH     5            /* validation methods 1..5              */
 #define GALAV_NOCODE    (-1)         /* "no code issued" marker in a record  */
